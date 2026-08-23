@@ -9,7 +9,7 @@ log "Installazione stack VM KVM/QEMU + libvirt + virt-manager"
 install_available_packages \
   qemu-kvm libvirt libvirt-daemon-kvm libvirt-daemon-config-network \
   virt-manager virt-install virt-viewer \
-  edk2-ovmf swtpm swtpm-tools
+  edk2-ovmf swtpm swtpm-tools libosinfo
 
 if [[ "$INSTALL_VAGRANT" == true ]]; then
   log "Installazione Vagrant con provider libvirt"
@@ -42,6 +42,11 @@ if [[ "$VIRTUALIZATION_AUTOSTART" == true ]]; then
     sudo virsh net-autostart default >/dev/null 2>&1 || true
     sudo virsh net-start default >/dev/null 2>&1 || true
   fi
+fi
+
+if [[ "$CREATE_OPTIONAL_VMS" == true ]]; then
+  log "Creazione VM opzionali Debian, Fedora e Windows 11"
+  "$ROOT_DIR/bin/create-vms.sh" all
 fi
 
 log "Virtualizzazione configurata"

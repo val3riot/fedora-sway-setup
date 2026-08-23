@@ -510,3 +510,30 @@ virsh -c qemu:///system list --all
 ```
 
 Dopo la prima installazione può essere necessario logout/login per applicare i gruppi `kvm` e `libvirt`. Per workflow DevOps puoi poi usare `vagrant up --provider=libvirt`.
+
+### VM opzionali: Debian, Fedora e Windows 11
+
+Il setup può creare tre VM persistenti da ISO locali. La funzione è disabilitata
+di default, non scarica immagini automaticamente e non modifica VM omonime già
+esistenti. Copia le ISO in `~/ISO` (oppure configura percorsi diversi) e aggiungi
+a `config/local.env`:
+
+```bash
+CREATE_OPTIONAL_VMS=true
+VM_DEBIAN_ISO="$HOME/ISO/debian.iso"
+VM_FEDORA_ISO="$HOME/ISO/fedora.iso"
+VM_WINDOWS11_ISO="$HOME/ISO/windows11.iso"
+```
+
+Quindi esegui `./install.sh --development`. In alternativa puoi creare i guest
+manualmente, tutti o singolarmente:
+
+```bash
+./bin/create-vms.sh all
+./bin/create-vms.sh debian
+./bin/create-vms.sh fedora windows11
+```
+
+Debian e Fedora ricevono 2 vCPU, 4 GiB di RAM e dischi da 40/50 GiB. Windows 11
+riceve 4 vCPU, 8 GiB di RAM, un disco da 80 GiB, UEFI e TPM 2.0 virtuale. Le
+installazioni restano interattive e si completano aprendo `virt-manager`.
