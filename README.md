@@ -18,6 +18,7 @@ Lo script deve essere avviato come utente normale: richiede `sudo` solo per le o
 - LaTeX/TeX Live tramite i pacchetti ufficiali Fedora;
 - Codex, Claude Code e GitHub Copilot CLI opzionali (`INSTALL_AGENTS=true`),
   tramite release e installer nativi ufficiali con versione e SHA-256 fissati;
+- contesto macchina persistente in `~/.agent`, disponibile per qualunque agente;
 - VS Code tramite repository RPM Microsoft;
 - JetBrains Toolbox in `~/Tools`;
 - DBeaver e Bruno via RPM;
@@ -44,6 +45,24 @@ Profilo minimo:
 
 ```bash
 ./install.sh --base
+```
+
+## Contesto macchina per gli agenti
+
+Ogni esecuzione completa del setup crea, oppure aggiorna se già presente,
+`~/.agent/AGENTS.md`. Il documento espone soltanto informazioni operative non
+sensibili: sistema e architettura, percorsi convenzionali, componenti configurati,
+regole per installare software e comandi di verifica del repository.
+
+`~/.agent/LOCAL_NOTES.md` è invece creato soltanto quando manca e non viene mai
+sovrascritto. Può contenere preferenze e vincoli aggiuntivi della macchina. Un
+agente che non scopre automaticamente `~/.agent/AGENTS.md` deve essere istruito a
+leggerlo all'inizio della sessione insieme a `LOCAL_NOTES.md`.
+
+Il doctor verifica la presenza di entrambi:
+
+```bash
+./bin/doctor.sh
 ```
 
 ## Tema Zsh/Starship opzionale

@@ -103,6 +103,11 @@ done
 check 'SMB/CIFS' mount.cifs
 check TuneD tuned-adm
 check 'Power mode' laptop-power-mode
+if [[ -r "$HOME/.agent/AGENTS.md" && -r "$HOME/.agent/LOCAL_NOTES.md" ]]; then
+  printf 'OK   %-20s %s\n' 'Agent context' "$HOME/.agent"
+else
+  printf 'MISS %-20s %s\n' 'Agent context' "$HOME/.agent"
+fi
 check 'Virt Manager' virt-manager
 check 'Virsh' virsh
 check 'Virt Install' virt-install
