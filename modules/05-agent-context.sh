@@ -38,6 +38,7 @@ trap 'rm -f "$tmp_context"' EXIT
 - Architettura: $(uname -m)
 - Kernel: $(uname -r)
 - Desktop previsto: Fedora Workstation con GNOME e systemd
+- Desktop tiling Sway: ${INCLUDE_SWAY_DESKTOP:-false}; GNOME resta disponibile come fallback
 - Shell interattiva: Zsh; gli script di automazione del setup sono Bash
 - Package manager di sistema: DNF5/RPM
 
@@ -61,7 +62,21 @@ trap 'rm -f "$tmp_context"' EXIT
 - VPN tradizionali OpenVPN/OpenConnect: $INSTALL_VPN_SUPPORT
 - SDK: SDKMAN=$INSTALL_SDKMAN, NVM=$INSTALL_NVM, Miniconda=$INSTALL_MINICONDA
 - Agenti CLI Codex/Claude/Copilot: $INSTALL_AGENTS (opt-in)
+- Guida Sway condivisa tra utente e agenti: \`sway-help\` oppure \`Super+G\`
 EOF
+  if [[ "${INCLUDE_SWAY_DESKTOP:-false}" == true ]]; then
+    cat <<'EOF'
+
+## Desktop Sway
+
+- Sway è una sessione Wayland affiancata a GNOME, non una sua sostituzione.
+- Configurazione gestita: `~/.config/sway/config`.
+- Launcher applicazioni: `Super+D` (Fuzzel); terminale: `Super+Invio` (Kitty).
+- Guida ricercabile: `Super+G` oppure `sway-help` da terminale/launcher.
+- Ricarica configurazione: `Super+Shift+C`; uscita: `Super+Shift+E`.
+- Non modificare i file gestiti direttamente: rendere persistenti le variazioni nei template del repository.
+EOF
+  fi
   cat "$ROOT_DIR/templates/agent-conventions.md"
 } >"$tmp_context"
 chmod 600 "$tmp_context"

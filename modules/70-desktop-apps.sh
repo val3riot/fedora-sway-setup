@@ -81,7 +81,7 @@ if [[ "$SECTION" == all || "$SECTION" == gnome ]] &&
       install_available_packages gnome-shell-extension-dash-to-dock
       if command_exists gnome-extensions; then
         if ! gnome-extensions enable dash-to-dock@micxgx.gmail.com; then
-          warn "Dash to Dock installata ma non ancora caricata da GNOME: esegui logout/login e rilancia --desktop."
+          warn "Dash to Dock installata ma non ancora caricata da GNOME: esegui logout/login e rilancia --gnome-desktop."
         fi
       else
         warn "gnome-extensions non disponibile: impossibile abilitare Dash to Dock."

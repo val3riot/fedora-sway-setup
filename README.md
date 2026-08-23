@@ -25,6 +25,7 @@ Lo script deve essere avviato come utente normale: richiede `sudo` solo per le o
 - Discord e Obsidian via Flatpak/Flathub;
 - Thunderbird e LibreOffice dai repository Fedora;
 - Dash to Dock e pulsanti minimizza/massimizza per GNOME;
+- desktop tiling Sway opzionale con Waybar, launcher Fuzzel e guida ricercabile;
 - Docker Engine CE, Buildx e Docker Compose V2;
 - Docker Engine in modalità Rootless vera, senza daemon root e senza gruppo `docker`;
 - Docker Desktop per Linux (installato, non avviato automaticamente);
@@ -46,6 +47,11 @@ Profilo minimo:
 ```bash
 ./install.sh --base
 ```
+
+Durante l'esecuzione il setup mostra il modulo corrente, il conteggio e la
+percentuale di avanzamento. L'output completo viene salvato anche in
+`~/.local/state/fedora-workstation-setup/`; il percorso esatto del log è stampato
+all'avvio e viene ripetuto se un modulo fallisce.
 
 ## Contesto macchina per gli agenti
 
@@ -215,13 +221,58 @@ ENABLE_WINDOW_BUTTONS=false
 Per installare soltanto la sezione desktop:
 
 ```bash
-./install.sh --desktop
+./install.sh --gnome-desktop
 ```
 
-Questa modalità esegue `modules/70-desktop-apps.sh`. Dopo la prima installazione
+`--desktop` resta un alias compatibile. Questa modalità esegue il profilo GNOME
+senza installare il profilo development completo. Dopo la prima installazione
 di Dash to Dock può essere necessario un logout/login per caricare l'estensione.
 
-Per installare sia l'ambiente di sviluppo sia la sezione desktop:
+## Desktop tiling Sway
+
+Il profilo sperimentale installa una sessione Sway affiancata a GNOME usando
+soltanto pacchetti dei repository Fedora. GNOME non viene rimosso e resta
+selezionabile dalla schermata di login:
+
+```bash
+./install.sh --sway-desktop
+```
+
+I profili desktop sono indipendenti e componibili. Per preparare nello stesso
+passaggio strumenti di sviluppo e Sway:
+
+```bash
+./install.sh --development --sway-desktop
+```
+
+È anche possibile installare entrambe le sessioni desktop con
+`./install.sh --gnome-desktop --sway-desktop`. `--all` conserva il significato
+storico di `--development --gnome-desktop` e non abilita implicitamente Sway.
+
+Il desktop usa Waybar, Kitty e Fuzzel. `Super+D` apre il launcher applicazioni;
+`Super+G` apre una palette ricercabile con scorciatoie e comandi. La stessa guida
+si avvia dal launcher cercando **Sway Help & Keybindings**, oppure da terminale
+con `sway-help`. Selezionando una voce, questa viene anche copiata negli appunti.
+
+| Scorciatoia | Azione |
+|---|---|
+| `Super+D` | launcher applicazioni |
+| `Super+G` | guida ricercabile |
+| `Super+Invio` | terminale Kitty |
+| `Super+H/J/K/L` | cambia focus |
+| `Super+Shift+H/J/K/L` | sposta finestra |
+| `Super+1…9` | cambia workspace |
+| `Super+Shift+1…9` | sposta finestra nel workspace |
+| `Super+Shift+C` | ricarica Sway |
+| `Super+Shift+E` | termina la sessione |
+
+Le configurazioni gestite sono in `~/.config/sway`, `~/.config/waybar` e
+`~/.config/fuzzel`; un file personale preesistente viene salvato una sola volta
+con suffisso `.workstation-setup.bak`. Il contesto `~/.agent/AGENTS.md` documenta
+automaticamente desktop, percorsi, launcher e comandi, così gli agenti possono
+diagnosticare e modificare il setup in modo riproducibile.
+
+Per installare sia l'ambiente di sviluppo sia il profilo GNOME:
 
 ```bash
 ./install.sh --all

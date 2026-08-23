@@ -1,0 +1,8 @@
+/* workstation-setup: managed waybar style */
+* { border: none; border-radius: 0; font-family: monospace; font-size: 13px; }
+window#waybar { background: rgba(17, 17, 27, 0.94); color: #cdd6f4; }
+#workspaces button { padding: 0 9px; color: #6c7086; }
+#workspaces button.focused { color: #11111b; background: #89b4fa; }
+#mode { color: #11111b; background: #f9e2af; padding: 0 10px; }
+#clock, #network, #pulseaudio, #battery, #tray { padding: 0 10px; }
+#network.disconnected, #pulseaudio.muted { color: #f38ba8; }

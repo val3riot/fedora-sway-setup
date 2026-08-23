@@ -52,6 +52,22 @@ check DBeaver dbeaver
 check Bruno bruno
 check Thunderbird thunderbird
 check LibreOffice libreoffice
+if [[ -r "$HOME/.config/sway/config" ]]; then
+  printf '\nDesktop Sway opzionale:\n'
+  check Sway sway
+  check Waybar waybar
+  check Fuzzel fuzzel
+  check 'Sway help' sway-help
+  for managed_file in \
+    "$HOME/.config/sway/config" \
+    "$HOME/.config/fuzzel/fuzzel.ini" \
+    "$HOME/.config/waybar/config.jsonc" \
+    "$HOME/.config/waybar/style.css"; do
+    [[ -r "$managed_file" ]] &&
+      printf 'OK   %-20s %s\n' 'Sway config' "$managed_file" ||
+      printf 'MISS %-20s %s\n' 'Sway config' "$managed_file"
+  done
+fi
 if command -v gnome-shell >/dev/null 2>&1; then
   if command -v gnome-extensions >/dev/null 2>&1 &&
      gnome-extensions list --enabled 2>/dev/null | grep -Fqx dash-to-dock@micxgx.gmail.com; then

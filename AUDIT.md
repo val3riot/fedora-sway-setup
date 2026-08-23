@@ -14,7 +14,7 @@ I seguenti componenti sono installati con DNF dai repository Fedora:
 | Plugin Zsh | `zsh-syntax-highlighting`, `zsh-autosuggestions` |
 | Sviluppo | compilatori, strumenti di build, Python, TeX Live medium |
 | Rete | `cifs-utils`, OpenVPN, OpenConnect |
-| Desktop | Thunderbird, LibreOffice, Dash to Dock |
+| Desktop | Thunderbird, LibreOffice, Dash to Dock; Sway, Waybar, Fuzzel e componenti Wayland opzionali |
 | Virtualizzazione | KVM/QEMU, libvirt, virt-manager, Vagrant |
 | Alimentazione | TuneD e supporto `intel_pstate` |
 

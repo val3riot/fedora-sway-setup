@@ -114,22 +114,31 @@ validate_config() {
 }
 
 install_available_packages() {
-  local package
+  local package package_index=0 package_total=$# repoquery_output
   local -a available=()
   local -a missing=()
 
   for package in "$@"; do
+    ((package_index += 1))
     if rpm -q "$package" >/dev/null 2>&1; then
-      printf '  già installato: %s\n' "$package"
-    elif dnf -q repoquery --available "$package" >/dev/null 2>&1; then
-      available+=("$package")
+      printf '  [%d/%d] già installato: %s\n' "$package_index" "$package_total" "$package"
     else
-      missing+=("$package")
+      printf '  [%d/%d] controllo repository: %s\n' "$package_index" "$package_total" "$package"
+      if ! repoquery_output="$(dnf -q repoquery --available "$package")"; then
+        die "DNF non riesce a interrogare i repository per il pacchetto: $package"
+      elif [[ -n "$repoquery_output" ]]; then
+        available+=("$package")
+      else
+        missing+=("$package")
+      fi
     fi
   done
 
   if ((${#available[@]})); then
+    printf '  installazione di %d pacchetti: %s\n' "${#available[@]}" "${available[*]}"
     sudo dnf install -y "${available[@]}"
+  else
+    printf '  nessun nuovo pacchetto da installare\n'
   fi
   if ((${#missing[@]})); then
     warn "Pacchetti non trovati nei repository abilitati: ${missing[*]}"
