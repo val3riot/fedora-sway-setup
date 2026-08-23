@@ -82,6 +82,12 @@ else
 fi
 check OpenVPN openvpn
 check OpenConnect openconnect
+check Tailscale tailscale
+if systemctl is-active --quiet tailscaled.service 2>/dev/null; then
+  printf 'OK   %-20s %s\n' 'Tailscale daemon' 'attivo'
+else
+  printf 'MISS %-20s\n' 'Tailscale daemon'
+fi
 check LaTeX tex
 printf '\nCoding agents:\n'
 check Codex codex

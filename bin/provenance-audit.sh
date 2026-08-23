@@ -77,6 +77,7 @@ check_rpm_command bruno bruno
 check_rpm_command vagrant vagrant
 check_rpm_command virsh libvirt-client
 check_rpm_command virt-manager virt-manager
+check_rpm_command tailscale tailscale
 for fedora_package in git-core zsh zsh-syntax-highlighting zsh-autosuggestions kitty tmux \
   openssh-clients vagrant libvirt-client virt-manager; do
   check_fedora_package "$fedora_package"
@@ -147,6 +148,7 @@ fi
 
 for repo_check in \
   '/etc/yum.repos.d/docker-ce.repo|download.docker.com/linux/fedora|gpgcheck=1' \
+  '/etc/yum.repos.d/tailscale.repo|pkgs.tailscale.com/stable/fedora|gpgcheck=1' \
   '/etc/yum.repos.d/vscode.repo|packages.microsoft.com/yumrepos/vscode|gpgcheck=1'; do
   IFS='|' read -r repo_file expected_url expected_gpg <<<"$repo_check"
   if [[ -r "$repo_file" ]] && grep -Fq "$expected_url" "$repo_file" && grep -Fq "$expected_gpg" "$repo_file"; then

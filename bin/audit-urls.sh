@@ -39,6 +39,7 @@ classify_url() {
     https://github.com/starship/starship/*)
       class='official upstream repository' ;;
     https://get.sdkman.io*|https://repo.anaconda.com/*|https://releases.openai.com/*|\
+    https://pkgs.tailscale.com/*|\
     https://claude.ai/*|https://gh.io/copilot-install*|https://download.docker.com/*|\
     https://desktop.docker.com/*|https://packages.microsoft.com/*|https://dbeaver.io/*|\
     https://api.github.com/repos/usebruno/bruno/*|https://data.services.jetbrains.com/*)

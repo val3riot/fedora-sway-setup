@@ -11,7 +11,7 @@ Lo script deve essere avviato come utente normale: richiede `sudo` solo per le o
 - ambiente terminale Kitty + tmux, con tema Zsh/Starship opzionale coordinato;
 - strumenti di base, compilazione e diagnostica, incluso il browser Gitk;
 - supporto per montare condivisioni SMB/CIFS tramite `cifs-utils`;
-- supporto OpenVPN e OpenConnect/Cisco-compatible;
+- Tailscale fondamentale, più supporto OpenVPN e OpenConnect/Cisco-compatible;
 - SDKMAN con Java, Maven e Gradle;
 - NVM con Node LTS;
 - Miniconda senza attivazione automatica di `base`;

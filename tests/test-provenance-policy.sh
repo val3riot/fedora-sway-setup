@@ -7,6 +7,9 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 grep -Fq 'https://releases.openai.com/codex/releases/${CODEX_VERSION}/install.sh' "$ROOT_DIR/config/sources.env"
 grep -Fq 'https://claude.ai/install.sh' "$ROOT_DIR/config/sources.env"
 grep -Fq 'https://gh.io/copilot-install' "$ROOT_DIR/config/sources.env"
+grep -Fq 'https://pkgs.tailscale.com/stable/fedora/tailscale.repo' "$ROOT_DIR/config/sources.env"
+grep -Fq 'install_available_packages tailscale' "$ROOT_DIR/modules/12-tailscale.sh"
+grep -Fq 'systemctl enable --now tailscaled.service' "$ROOT_DIR/modules/12-tailscale.sh"
 if grep -Eq 'npm (install|i).*(-g|--global).*(codex|claude|copilot)' "$ROOT_DIR/modules/45-agents.sh"; then
   printf '%s\n' 'FAIL installazione npm agente rilevata' >&2
   exit 1
