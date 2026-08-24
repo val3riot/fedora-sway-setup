@@ -6,6 +6,8 @@ set $lock $HOME/.local/bin/workstation-lock
 
 font pango:sans 10
 floating_modifier $mod normal
+gaps inner 8
+gaps outer 0
 
 input type:keyboard {
     xkb_layout it
@@ -29,6 +31,7 @@ bindsym $mod+Shift+e exec swaynag -t warning -m 'Uscire da Sway?' -B 'Sì, esci'
 bindsym $mod+Shift+x exec $lock
 bindsym $mod+b splith
 bindsym $mod+v splitv
+bindsym $mod+f fullscreen toggle
 
 bindsym XF86AudioRaiseVolume exec wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+
 bindsym XF86AudioLowerVolume exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
