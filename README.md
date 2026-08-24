@@ -56,6 +56,10 @@ flottanti compatte per autenticazione PolicyKit, connessioni di rete e controllo
 audio. Le finestre floating si spostano con `Super` + trascinamento sinistro e si
 ridimensionano con `Super` + trascinamento destro.
 
+`Super+D` apre il menu applicazioni e, se è già visibile, lo chiude. La finestra
+delle scorciatoie adatta font, larghezza e numero di righe allo schermo attivo:
+rimane sempre sotto Waybar e dentro i bordi del desktop.
+
 Waybar mostra icona e percentuale della batteria. Un clic sulla batteria apre il
 selettore dei profili energetici:
 

@@ -16,6 +16,7 @@ done
 
 install -m 0755 "$ROOT_DIR/bin/waybar-cpu-temperature" "$HOME/.local/bin/waybar-cpu-temperature"
 install -m 0755 "$ROOT_DIR/bin/sway-shortcuts" "$HOME/.local/bin/sway-shortcuts"
+install -m 0755 "$ROOT_DIR/bin/workstation-app-menu" "$HOME/.local/bin/workstation-app-menu"
 install -m 0755 "$ROOT_DIR/bin/workstation-theme" "$HOME/.local/bin/workstation-theme"
 install -m 0755 "$ROOT_DIR/bin/workstation-lock" "$HOME/.local/bin/workstation-lock"
 install -m 0755 "$ROOT_DIR/bin/workstation-network-editor" "$HOME/.local/bin/workstation-network-editor"

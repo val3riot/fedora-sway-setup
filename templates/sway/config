@@ -1,7 +1,7 @@
 # workstation-setup: managed sway config
 set $mod Mod4
 set $term kitty
-set $menu fuzzel
+set $menu $HOME/.local/bin/workstation-app-menu
 set $lock $HOME/.local/bin/workstation-lock
 
 font pango:sans 10
