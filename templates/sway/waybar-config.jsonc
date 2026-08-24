@@ -1,46 +1,77 @@
 // workstation-setup: managed waybar config
 {
+  "reload_style_on_change": true,
   "layer": "top",
   "position": "top",
   "height": 30,
-  "spacing": 6,
+  "spacing": 0,
   "modules-left": ["sway/workspaces", "sway/mode"],
   "modules-center": ["clock"],
-  "modules-right": ["custom/cpu-temperature", "cpu", "memory", "network", "pulseaudio", "battery", "tray"],
+  "modules-right": ["group/tray-expander", "custom/cpu-temperature", "cpu", "memory", "network", "pulseaudio", "battery"],
   "sway/workspaces": {
     "disable-scroll": true,
-    "all-outputs": true
+    "all-outputs": true,
+    "format": "{icon}",
+    "format-icons": {
+      "1": "1", "2": "2", "3": "3", "4": "4", "5": "5",
+      "6": "6", "7": "7", "8": "8", "9": "9", "10": "0",
+      "focused": "󱓻", "urgent": "󰀦", "default": ""
+    },
+    "persistent-workspaces": {"1": [], "2": [], "3": [], "4": [], "5": []}
   },
   "clock": {
-    "format": "{:%a %d %b  %H:%M}",
-    "tooltip-format": "{calendar}"
+    "format": "{:%A %H:%M}",
+    "format-alt": "{:%d %B W%V %Y}",
+    "cursor": true,
+    "tooltip": false
   },
   "custom/cpu-temperature": {
     "exec": "$HOME/.local/bin/waybar-cpu-temperature",
     "return-type": "json",
     "interval": 5
   },
-  "cpu": {
-    "format": "CPU {usage}%"
-  },
-  "memory": {
-    "format": "RAM {percentage}%"
-  },
+  "cpu": {"interval": 5, "format": "󰍛 {usage}%", "tooltip-format": "Uso CPU: {usage}%"},
+  "memory": {"interval": 5, "format": "󰘚 {percentage}%", "tooltip-format": "Uso RAM: {percentage}%"},
   "network": {
-    "format-wifi": "Wi-Fi {signalStrength}%",
-    "format-ethernet": "LAN",
-    "format-disconnected": "Offline"
+    "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
+    "format-wifi": "{icon}",
+    "format-ethernet": "󰈀",
+    "format-disconnected": "󰤮",
+    "tooltip-format-wifi": "{essid} · {signalStrength}%",
+    "tooltip-format-ethernet": "{ifname} · {ipaddr}/{cidr}",
+    "tooltip-format-disconnected": "Disconnesso",
+    "on-click": "nm-connection-editor",
+    "cursor": true,
+    "interval": 3
   },
   "pulseaudio": {
-    "format": "Vol {volume}%",
-    "format-muted": "Muted",
-    "on-click": "pavucontrol"
+    "format": "{icon}",
+    "format-muted": "",
+    "format-icons": {"headphone": "", "headset": "", "default": ["", "", ""]},
+    "tooltip-format": "Volume {volume}%",
+    "scroll-step": 5,
+    "on-click": "pavucontrol",
+    "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+    "cursor": true
   },
   "battery": {
-    "format": "Bat {capacity}%",
-    "format-charging": "Bat +{capacity}%"
+    "states": {"warning": 20, "critical": 10},
+    "format": "{icon}",
+    "format-charging": "{icon}",
+    "format-plugged": "",
+    "format-full": "󰂅",
+    "format-icons": {
+      "charging": ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"],
+      "default": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+    },
+    "tooltip-format": "{capacity}% · {timeTo}",
+    "interval": 5
   },
-  "tray": {
-    "spacing": 8
-  }
+  "group/tray-expander": {
+    "orientation": "inherit",
+    "drawer": {"transition-duration": 400, "children-class": "tray-group-item"},
+    "modules": ["custom/expand-icon", "tray"]
+  },
+  "custom/expand-icon": {"format": "", "tooltip": false},
+  "tray": {"icon-size": 15, "spacing": 14, "cursor": true}
 }

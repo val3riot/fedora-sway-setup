@@ -8,7 +8,7 @@ bash "$ROOT_DIR/modules/26-kitty.sh" </dev/null
 install_available_packages sway sway-config-fedora waybar fuzzel foot mako swayidle swaylock \
   grim slurp wl-clipboard brightnessctl playerctl pavucontrol \
   network-manager-applet xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
-  lxqt-policykit wireplumber
+  lxqt-policykit wireplumber cascadia-mono-nf-fonts
 
 for command_name in sway waybar; do
   command_exists "$command_name" || die "$command_name non disponibile dopo l'installazione."

@@ -1,39 +1,63 @@
 /* workstation-setup: managed waybar style */
+@define-color background #18181f;
+@define-color foreground #cdd6f4;
+@define-color accent #89b4fa;
+@define-color warning #f9e2af;
+@define-color critical #f38ba8;
+
 * {
-  font-family: sans-serif;
-  font-size: 13px;
+  background-color: @background;
+  color: @foreground;
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+  font-family: "CaskaydiaMono Nerd Font", monospace;
+  font-size: 14px;
 }
 
-window#waybar {
-  background: #20242b;
-  color: #e6e6e6;
+window#waybar { background: @background; }
+.modules-left { margin-left: 8px; }
+.modules-right { margin-right: 8px; }
+
+#workspaces button {
+  all: initial;
+  min-width: 9px;
+  margin: 0 2px;
+  padding: 0 6px;
+  color: @foreground;
+  font-family: "CaskaydiaMono Nerd Font", monospace;
+  font-size: 14px;
 }
 
-#workspaces button,
-#mode,
-#clock,
+#workspaces button.empty { opacity: 0.45; }
+#workspaces button.focused { color: @accent; }
+#workspaces button.urgent { color: @critical; }
+#mode { margin-left: 8px; color: @warning; }
+#clock { margin-left: 8px; padding: 0 6px; }
+
+#workspaces button:hover,
+#clock:hover,
+#network:hover,
+#pulseaudio:hover,
+#tray:hover {
+  background-color: alpha(@accent, 0.16);
+  border-radius: 6px;
+}
+
 #custom-cpu-temperature,
 #cpu,
 #memory,
 #network,
 #pulseaudio,
-#battery,
-#tray {
-  padding: 0 8px;
+#battery {
+  min-width: 14px;
+  margin: 0 8px;
 }
 
-#custom-cpu-temperature {
-  color: #f2c14e;
-}
-
-#custom-cpu-temperature.unavailable {
-  color: #e06c75;
-}
-
-#battery.warning {
-  color: #f2c14e;
-}
-
-#battery.critical:not(.charging) {
-  color: #e06c75;
-}
+#custom-cpu-temperature { color: @warning; }
+#custom-cpu-temperature.unavailable,
+#battery.critical:not(.charging) { color: @critical; }
+#battery.warning { color: @warning; }
+#custom-expand-icon { margin: 0 10px 0 8px; }
+#tray { margin-right: 8px; }
+tooltip { padding: 2px; }
