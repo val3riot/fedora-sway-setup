@@ -57,6 +57,8 @@ grep -Fq "pgrep -f '^/usr/libexec/lxqt-policykit-agent\$'" "$ROOT_DIR/bin/workst
 grep -Fq '@import url("theme.css");' "$ROOT_DIR/templates/sway/waybar-style.css"
 grep -Fq 'include theme.conf' "$ROOT_DIR/templates/kitty.conf"
 grep -Fq 'Name=Cambia tema chiaro o scuro' "$ROOT_DIR/templates/sway/workstation-theme.desktop"
+grep -Fq 'default-timeout=10000' "$ROOT_DIR/templates/themes/dark/mako.conf"
+grep -Fq 'default-timeout=10000' "$ROOT_DIR/templates/themes/light/mako.conf"
 grep -Fq 'Name=Tasti rapidi e scorciatoie da tastiera' "$ROOT_DIR/templates/sway/sway-shortcuts.desktop"
 grep -Fq 'GenericName=Tasti e shortcut di Sway' "$ROOT_DIR/templates/sway/sway-shortcuts.desktop"
 grep -Fq 'Keywords=scorciatoie;shortcut;tasti;comandi;tastiera;sway;' "$ROOT_DIR/templates/sway/sway-shortcuts.desktop"
