@@ -1,0 +1,12 @@
+# workstation-setup: managed Cliamp entry
+[Desktop Entry]
+Type=Application
+Name=Cliamp
+GenericName=Player musicale da terminale
+Comment=Riproduci musica locale, stream e radio Internet
+Keywords=musica;music;radio;stream;terminale;tui;winamp;
+Icon=multimedia-player
+Exec=/usr/bin/zsh -lc "exec \\$HOME/.local/bin/cliamp-widget"
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+StartupNotify=false

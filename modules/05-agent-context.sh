@@ -180,6 +180,7 @@ trap 'rm -f "$tmp_context"' EXIT
 - LibreOffice: $(state_command libreoffice)
 - Discord Flatpak: $(state_flatpak com.discordapp.Discord)
 - Obsidian Flatpak: $(state_flatpak md.obsidian.Obsidian)
+- Cliamp (extra opzionale): $(state_command cliamp)
 - TuneD: $(state_command tuned-adm); servizio gestione energetica: $power_mode_service_state
 
 ## Agenti CLI

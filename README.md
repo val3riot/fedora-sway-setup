@@ -26,11 +26,16 @@ I profili software disponibili sono:
 ./install.sh --sway
 ./install.sh --gnome
 ./install.sh --base --agent --sway
+./install.sh --extra
+./install.sh --base --extra
 ./install.sh --dev --gnome
 ./install.sh --all --sway
 ```
 
 - `--agent` aggiunge Codex, Claude Code e Copilot CLI a `--base` o `--dev`.
+- `--extra` installa software ricreativo e non essenziale, attualmente Cliamp,
+  il player musicale TUI con file locali, stream e radio Internet. È opt-in e
+  non viene incluso neppure da `--all`.
 - `--sway` installa o aggiorna Sway, Kitty e le relative configurazioni; non
   richiede un profilo software.
 - `--gnome` installa o aggiorna soltanto GNOME e la configurazione GNOME; non

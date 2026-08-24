@@ -7,7 +7,7 @@
   "spacing": 0,
   "modules-left": ["sway/workspaces", "sway/mode"],
   "modules-center": ["clock"],
-  "modules-right": ["group/tray-expander", "custom/cpu-temperature", "cpu", "memory", "network", "pulseaudio", "battery", "custom/power"],
+  "modules-right": ["group/tray-expander", "custom/cliamp", "custom/cpu-temperature", "cpu", "memory", "network", "pulseaudio", "battery", "custom/power"],
   "sway/workspaces": {
     "disable-scroll": true,
     "all-outputs": true,
@@ -50,6 +50,14 @@
     "exec": "$HOME/.local/bin/waybar-cpu-temperature",
     "return-type": "json",
     "interval": 5
+  },
+  "custom/cliamp": {
+    "exec": "$HOME/.local/bin/cliamp-widget status",
+    "return-type": "json",
+    "interval": 1,
+    "on-click": "$HOME/.local/bin/cliamp-widget toggle",
+    "on-click-right": "$HOME/.local/bin/cliamp-widget close",
+    "cursor": true
   },
   "cpu": {"interval": 5, "format": "󰍛 {usage}%", "tooltip-format": "Uso CPU: {usage}%"},
   "memory": {"interval": 5, "format": "󰘚 {percentage}%", "tooltip-format": "Uso RAM: {percentage}%"},

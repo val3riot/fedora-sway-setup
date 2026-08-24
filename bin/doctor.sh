@@ -89,6 +89,9 @@ else
   printf 'MISS %-20s\n' 'Tailscale daemon'
 fi
 check LaTeX tex
+if command -v cliamp >/dev/null 2>&1; then
+  check Cliamp cliamp
+fi
 printf '\nCoding agents:\n'
 check Codex codex
 check Claude claude

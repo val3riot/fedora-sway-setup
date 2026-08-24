@@ -33,6 +33,7 @@ window#waybar { background: @background; }
 
 #workspaces button:hover,
 #clock:hover,
+#custom-cliamp:hover,
 #network:hover,
 #pulseaudio:hover,
 #custom-power:hover,
@@ -42,6 +43,7 @@ window#waybar { background: @background; }
 }
 
 #custom-cpu-temperature,
+#custom-cliamp,
 #cpu,
 #memory,
 #network,
@@ -58,6 +60,8 @@ window#waybar { background: @background; }
   color: @critical;
 }
 
+#custom-cliamp { color: alpha(@foreground, 0.48); }
+#custom-cliamp.active { color: @accent; }
 #custom-cpu-temperature { color: @warning; }
 #custom-cpu-temperature.unavailable,
 #battery.critical:not(.charging) { color: @critical; }

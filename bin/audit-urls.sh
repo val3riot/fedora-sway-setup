@@ -36,7 +36,7 @@ classify_url() {
   local name=$1 url=$2 class
   case "$url" in
     https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/*|https://raw.githubusercontent.com/nvm-sh/nvm/*|\
-    https://github.com/starship/starship/*)
+    https://github.com/starship/starship/*|https://github.com/bjarneo/cliamp/*)
       class='official upstream repository' ;;
     https://get.sdkman.io*|https://repo.anaconda.com/*|https://releases.openai.com/*|\
     https://pkgs.tailscale.com/*|\

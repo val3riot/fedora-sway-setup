@@ -19,6 +19,7 @@ PROFILI
 
 COMPONENTI
   --agent         Installa Codex, Claude Code e Copilot CLI.
+  --extra         Installa software ricreativo e non essenziale (attualmente Cliamp).
   --sway          Installa/aggiorna esclusivamente Sway e la sua configurazione.
   --gnome         Installa/aggiorna esclusivamente GNOME e la sua configurazione.
 
@@ -67,6 +68,7 @@ INSTALL_BASE=false
 INSTALL_DEV=false
 INSTALL_APPS=false
 INSTALL_AGENTS=false
+INSTALL_EXTRA=false
 DESKTOP_ENV=none
 profile_selected=false
 
@@ -85,6 +87,7 @@ while (($#)); do
       PROFILE=all; INSTALL_BASE=true; INSTALL_DEV=true; INSTALL_APPS=true; INSTALL_AGENTS=true; profile_selected=true
       ;;
     --agent) INSTALL_AGENTS=true ;;
+    --extra) INSTALL_EXTRA=true ;;
     --sway)
       [[ "$DESKTOP_ENV" == none ]] || die "--sway e --gnome sono mutuamente esclusivi."
       DESKTOP_ENV=sway
@@ -103,8 +106,9 @@ while (($#)); do
 done
 
 if [[ "$profile_selected" == false ]]; then
-  [[ "$DESKTOP_ENV" != none ]] || die "Specifica un profilo o un desktop: --base, --dev, --all, --sway oppure --gnome."
-  PROFILE=desktop
+  [[ "$DESKTOP_ENV" != none || "$INSTALL_EXTRA" == true ]] ||
+    die "Specifica un profilo o un componente: --base, --dev, --all, --agent, --extra, --sway oppure --gnome."
+  PROFILE=components
 fi
 
 export ROOT_DIR PROFILE DESKTOP_ENV
@@ -131,6 +135,7 @@ module_enabled() {
       [[ "$INSTALL_DEV" == true ]]
       ;;
     45-agents.sh) [[ "$INSTALL_AGENTS" == true ]] ;;
+    65-extra.sh) [[ "$INSTALL_EXTRA" == true ]] ;;
     70-desktop-apps.sh) [[ "$INSTALL_APPS" == true ]] ;;
     75-sway-desktop.sh) [[ "$DESKTOP_ENV" == sway ]] ;;
     76-gnome-desktop.sh) [[ "$DESKTOP_ENV" == gnome ]] ;;
