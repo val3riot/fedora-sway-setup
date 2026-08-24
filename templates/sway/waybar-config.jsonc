@@ -85,15 +85,17 @@
   },
   "battery": {
     "states": {"warning": 20, "critical": 10},
-    "format": "{icon}",
-    "format-charging": "{icon}",
-    "format-plugged": "",
-    "format-full": "󰂅",
+    "format": "{icon} {capacity}%",
+    "format-charging": "{icon} {capacity}%",
+    "format-plugged": " {capacity}%",
+    "format-full": "󰂅 {capacity}%",
     "format-icons": {
       "charging": ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"],
       "default": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
     },
     "tooltip-format": "{capacity}% · {timeTo}",
+    "on-click": "$HOME/.local/bin/workstation-power-profile-menu",
+    "cursor": true,
     "interval": 5
   },
   "custom/power": {

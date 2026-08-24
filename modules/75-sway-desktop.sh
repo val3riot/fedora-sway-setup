@@ -21,6 +21,7 @@ install -m 0755 "$ROOT_DIR/bin/workstation-lock" "$HOME/.local/bin/workstation-l
 install -m 0755 "$ROOT_DIR/bin/workstation-network-editor" "$HOME/.local/bin/workstation-network-editor"
 install -m 0755 "$ROOT_DIR/bin/workstation-policykit-agent" "$HOME/.local/bin/workstation-policykit-agent"
 install -m 0755 "$ROOT_DIR/bin/workstation-power-menu" "$HOME/.local/bin/workstation-power-menu"
+install -m 0755 "$ROOT_DIR/bin/workstation-power-profile-menu" "$HOME/.local/bin/workstation-power-profile-menu"
 install -m 0755 "$ROOT_DIR/bin/cliamp-widget" "$HOME/.local/bin/cliamp-widget"
 install -d "$HOME/.local/share/workstation-setup/themes/dark"
 install -d "$HOME/.local/share/workstation-setup/themes/light"
@@ -45,6 +46,14 @@ install_managed_config \
   "$ROOT_DIR/templates/sway/fuzzel.ini" \
   "$HOME/.config/fuzzel/fuzzel.ini" \
   '# workstation-setup: managed Fuzzel config'
+install_managed_config \
+  "$ROOT_DIR/templates/sway/policykit-window.conf" \
+  "$HOME/.config/sway/config.d/60-policykit-window.conf" \
+  '# workstation-setup: managed PolicyKit window rule'
+install_managed_config \
+  "$ROOT_DIR/templates/sway/desktop-app-windows.conf" \
+  "$HOME/.config/sway/config.d/61-desktop-app-windows.conf" \
+  '# workstation-setup: managed desktop app window rules'
 install_managed_config \
   "$ROOT_DIR/templates/sway/waybar-config.jsonc" \
   "$HOME/.config/waybar/config" \
