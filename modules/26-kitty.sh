@@ -12,6 +12,9 @@ infocmp -x xterm-kitty >/dev/null 2>&1 ||
 
 target="$HOME/.config/kitty/kitty.conf"
 install_managed_config "$ROOT_DIR/templates/kitty.conf" "$target" '# workstation-setup: managed kitty config'
+if [[ ! -e "$HOME/.config/kitty/theme.conf" ]]; then
+  install -m 0644 "$ROOT_DIR/templates/themes/dark/kitty.conf" "$HOME/.config/kitty/theme.conf"
+fi
 log "Kitty configurato in $target"
 
 install -m 0755 \

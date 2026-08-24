@@ -1,0 +1,11 @@
+# workstation-setup: managed theme switcher entry
+[Desktop Entry]
+Type=Application
+Name=Cambia tema chiaro o scuro
+GenericName=Aspetto Tokyo Night o avorio
+Comment=Alterna il tema coordinato della workstation
+Keywords=tema;theme;chiaro;scuro;light;dark;beige;avorio;tokyo night;
+Icon=preferences-desktop-theme
+Exec=/usr/bin/zsh -lc "exec \\$HOME/.local/bin/workstation-theme toggle"
+Terminal=false
+Categories=Settings;

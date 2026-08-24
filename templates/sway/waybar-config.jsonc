@@ -40,7 +40,7 @@
     "tooltip-format-wifi": "{essid} · {signalStrength}%",
     "tooltip-format-ethernet": "{ifname} · {ipaddr}/{cidr}",
     "tooltip-format-disconnected": "Disconnesso",
-    "on-click": "nm-connection-editor",
+    "on-click": "$HOME/.local/bin/workstation-network-editor",
     "cursor": true,
     "interval": 3
   },

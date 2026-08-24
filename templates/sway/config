@@ -2,7 +2,7 @@
 set $mod Mod4
 set $term kitty
 set $menu fuzzel
-set $lock swaylock -f -c 20242b
+set $lock workstation-lock
 
 font pango:sans 10
 floating_modifier $mod normal
