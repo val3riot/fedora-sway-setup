@@ -31,6 +31,7 @@ Gli RPM Fedora sono verificati da DNF con le chiavi configurate dal sistema.
 | Codex | 0.149.0 | `releases.openai.com` | versione e SHA-256 bootstrap; checksum release verificato dall'installer |
 | Claude Code | 2.1.239 | `claude.ai` | versione e SHA-256 bootstrap; checksum release verificato dall'installer |
 | Copilot CLI | 1.0.80 | `gh.io` e release `github/copilot-cli` | versione e SHA-256 bootstrap; checksum release verificato dall'installer |
+| Cliamp | 1.63.2 | release GitHub `bjarneo/cliamp` | versione e SHA-256 binario Linux x86_64 |
 | DBeaver CE | 26.1.5 | `dbeaver.io` | versione e SHA-256 vendor |
 | Bruno | release corrente | `github.com/usebruno/bruno` | digest SHA-256 della release |
 | JetBrains Toolbox | release corrente | API JetBrains | checksum SHA-256 vendor |
@@ -38,6 +39,8 @@ Gli RPM Fedora sono verificati da DNF con le chiavi configurate dal sistema.
 Codex, Claude Code e Copilot CLI sono installati con `--agent` oppure `--all`.
 Durante i bootstrap, il setup rimuove dall'ambiente
 `GITHUB_TOKEN`, `GH_TOKEN`, `OPENAI_API_KEY` e `ANTHROPIC_API_KEY`.
+Cliamp è installato esclusivamente con `--extra`; le dipendenze opzionali
+`ffmpeg-free` e `yt-dlp` provengono dai repository Fedora.
 
 ## Repository vendor
 

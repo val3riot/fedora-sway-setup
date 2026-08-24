@@ -35,7 +35,9 @@ I profili software disponibili sono:
 - `--agent` aggiunge Codex, Claude Code e Copilot CLI a `--base` o `--dev`.
 - `--extra` installa software ricreativo e non essenziale, attualmente Cliamp,
   il player musicale TUI con file locali, stream e radio Internet. È opt-in e
-  non viene incluso neppure da `--all`.
+  non viene incluso neppure da `--all`. Con Sway aggiunge una voce al launcher
+  e un controllo Waybar: clic sinistro per avviare o mostrare/nascondere lo
+  scratchpad, clic destro per chiudere il player.
 - `--sway` installa o aggiorna Sway, Kitty e le relative configurazioni; non
   richiede un profilo software.
 - `--gnome` installa o aggiorna soltanto GNOME e la configurazione GNOME; non
@@ -46,6 +48,23 @@ per applicarne la configurazione bisogna indicarlo esplicitamente.
 
 Le applicazioni desktop incluse in `--all` sono DBeaver, Bruno, JetBrains
 Toolbox, Thunderbird, LibreOffice, Discord e Obsidian.
+
+## Sway e Waybar
+
+La configurazione Sway usa il tiling per le applicazioni principali e finestre
+flottanti compatte per autenticazione PolicyKit, connessioni di rete e controllo
+audio. Le finestre floating si spostano con `Super` + trascinamento sinistro e si
+ridimensionano con `Super` + trascinamento destro.
+
+Waybar mostra icona e percentuale della batteria. Un clic sulla batteria apre il
+selettore dei profili energetici:
+
+- `Dev 60%`: profilo bilanciato, turbo attivo, CPU limitata al 60%;
+- `Risparmio`: profilo power-saver, turbo attivo, limite predefinito al 45%;
+- `Prestazioni`: profilo performance, CPU al 100%.
+
+Il selettore resta aperto se il puntatore cambia finestra; si chiude con `Esc` o
+dopo la scelta. L'autorizzazione amministrativa avviene tramite PolicyKit.
 
 ## Configurazione
 
@@ -75,4 +94,7 @@ Altre utility:
 ./bin/set-wallpaper.sh
 docker-runtime status
 laptop-power-mode status
+laptop-power-mode dev 60
+laptop-power-mode quiet
+laptop-power-mode full
 ```
