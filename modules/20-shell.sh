@@ -3,7 +3,7 @@ set -Eeuo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
 
-if [[ "$INSTALL_OH_MY_ZSH" == true && ! -d "$HOME/.oh-my-zsh" ]]; then
+if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
   installer="$TOOLS_DIR/tmp/install-oh-my-zsh.sh"
   download_verified "$OH_MY_ZSH_INSTALL_URL" "$installer" "$OH_MY_ZSH_INSTALL_SHA256"
   RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh "$installer" --unattended
@@ -33,7 +33,7 @@ export COPILOT_HOME="\$AGENTS_ROOT/copilot"
 export NVM_DIR="$TOOLS_DIR/nvm"
 export SDKMAN_DIR="$TOOLS_DIR/sdkman"
 export VAGRANT_HOME="$TOOLS_DIR/vagrant"
-export VAGRANT_DEFAULT_PROVIDER="$VAGRANT_DEFAULT_PROVIDER"
+export VAGRANT_DEFAULT_PROVIDER="libvirt"
 export PATH="\$HOME/.local/bin:\$PATH"
 
 alias ll='ls -alF'
@@ -53,5 +53,6 @@ fi
 current_shell="$(getent passwd "$USER" | cut -d: -f7)"
 zsh_path="$(command -v zsh || true)"
 if [[ -n "$zsh_path" && "$current_shell" != "$zsh_path" ]]; then
-  chsh -s "$zsh_path" || warn "Cambio shell non riuscito; esegui manualmente: chsh -s $zsh_path"
+  sudo -n chsh -s "$zsh_path" "$USER" </dev/null ||
+    warn "Cambio shell non riuscito; esegui manualmente: chsh -s $zsh_path"
 fi

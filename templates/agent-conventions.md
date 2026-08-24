@@ -1,14 +1,15 @@
 
 ## Convenzioni operative
 
-1. Prima di cambiare il sistema, leggere `config/defaults.env`,
-   `config/local.env` se presente e il modulo pertinente in `modules/`.
+1. Prima di cambiare il sistema, leggere `config/versions.env`,
+   `config/sources.env` e il modulo pertinente in `modules/`.
 2. Rendere persistenti le modifiche nel repository del setup; evitare correzioni
    manuali non riproducibili sulla sola macchina.
 3. Per software di sistema preferire, nell'ordine: repository Fedora ufficiali;
    repository RPM ufficiale del vendor con verifica GPG; Flatpak Flathub
    documentato. Non usare COPR o script `curl | sh` senza consenso esplicito.
-4. Centralizzare URL, versioni e checksum in `config/sources.env`. Verificare gli
+4. Centralizzare URL in `config/sources.env` e versioni/checksum in
+   `config/versions.env`. Verificare gli
    artefatti statici prima dell'esecuzione e non disabilitare TLS o controlli GPG.
 5. Usare DNF per RPM, Flatpak `--user` per applicazioni desktop e i runtime già
    predisposti: SDKMAN per Java/Maven/Gradle, NVM per Node e Miniconda per Python.

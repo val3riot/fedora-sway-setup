@@ -1,0 +1,39 @@
+/* workstation-setup: managed waybar style */
+* {
+  font-family: sans-serif;
+  font-size: 13px;
+}
+
+window#waybar {
+  background: #20242b;
+  color: #e6e6e6;
+}
+
+#workspaces button,
+#mode,
+#clock,
+#custom-cpu-temperature,
+#cpu,
+#memory,
+#network,
+#pulseaudio,
+#battery,
+#tray {
+  padding: 0 8px;
+}
+
+#custom-cpu-temperature {
+  color: #f2c14e;
+}
+
+#custom-cpu-temperature.unavailable {
+  color: #e06c75;
+}
+
+#battery.warning {
+  color: #f2c14e;
+}
+
+#battery.critical:not(.charging) {
+  color: #e06c75;
+}

@@ -6,11 +6,17 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
 
+VM_ISO_DIR="$HOME/ISO"
+VM_DEBIAN_ISO="$VM_ISO_DIR/debian.iso"
+VM_FEDORA_ISO="$VM_ISO_DIR/fedora.iso"
+VM_WINDOWS11_ISO="$VM_ISO_DIR/windows11.iso"
+VM_STORAGE_DIR=/var/lib/libvirt/images
+
 usage() {
   cat <<'EOF'
 Uso: create-vms.sh [all|debian|fedora|windows11 ...]
 
-Crea guest libvirt persistenti usando le ISO indicate in config/local.env.
+Crea guest libvirt persistenti usando le ISO in ~/ISO.
 Le VM già esistenti non vengono modificate. Le installazioni si completano
 graficamente in virt-viewer/virt-manager.
 EOF
@@ -22,8 +28,8 @@ if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
   exit 0
 fi
 
-command_exists virsh || die "virsh non trovato: abilita INSTALL_VIRTUALIZATION=true."
-command_exists virt-install || die "virt-install non trovato: abilita INSTALL_VIRTUALIZATION=true."
+command_exists virsh || die "virsh non trovato: esegui prima ./install.sh --dev."
+command_exists virt-install || die "virt-install non trovato: esegui prima ./install.sh --dev."
 
 declare -a libvirt=(virsh -c qemu:///system)
 declare -a elevate=()

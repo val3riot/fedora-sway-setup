@@ -3,7 +3,7 @@ set -Eeuo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
 
-sudo -v
+sudo -n true
 repo_file=/etc/yum.repos.d/tailscale.repo
 
 if [[ ! -r "$repo_file" ]] ||

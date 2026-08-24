@@ -25,13 +25,17 @@ fi
 # Ogni download eseguibile/archivio statico deve avere un digest configurato.
 for variable in OH_MY_ZSH_INSTALL_SHA256 STARSHIP_ARCHIVE_SHA256 NVM_INSTALL_SHA256 \
   MINICONDA_INSTALLER_SHA256 CODEX_INSTALL_SHA256 CLAUDE_INSTALL_SHA256 \
-  COPILOT_INSTALL_SHA256 DOCKER_DESKTOP_RPM_SHA256; do
-  grep -Eq "^${variable}=\"?[0-9a-f]{64}\"?$" "$ROOT_DIR/config/sources.env"
+  COPILOT_INSTALL_SHA256; do
+  grep -Eq "^${variable}=\"?[0-9a-f]{64}\"?$" "$ROOT_DIR/config/versions.env"
 done
 
-grep -Fqx 'INSTALL_AGENTS=false' "$ROOT_DIR/config/defaults.env"
-grep -Fq 'env -u GITHUB_TOKEN -u GH_TOKEN -u OPENAI_API_KEY -u ANTHROPIC_API_KEY' \
+test ! -e "$ROOT_DIR/config/defaults.env"
+test ! -e "$ROOT_DIR/config/local.env.example"
+grep -Fq 'setsid --wait env -u GITHUB_TOKEN -u GH_TOKEN -u OPENAI_API_KEY -u ANTHROPIC_API_KEY' \
   "$ROOT_DIR/modules/45-agents.sh"
+grep -Fq 'CODEX_NON_INTERACTIVE=true' "$ROOT_DIR/modules/45-agents.sh"
+grep -Fq 'agent_is_current codex "$CODEX_VERSION"' "$ROOT_DIR/modules/45-agents.sh"
+grep -Fq 'agent_is_current copilot "$COPILOT_VERSION"' "$ROOT_DIR/modules/45-agents.sh"
 grep -Fq -- '--release "$CODEX_VERSION"' "$ROOT_DIR/modules/45-agents.sh"
 grep -Fq 'VERSION="$COPILOT_VERSION"' "$ROOT_DIR/modules/45-agents.sh"
 

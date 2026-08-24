@@ -2,10 +2,8 @@
 set -Eeuo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
-[[ "$PROFILE" == "development" ]] || exit 0
-[[ "$INSTALL_DOCKER" == true || "$INSTALL_DOCKER_DESKTOP" == true ]] || exit 0
 
-sudo -v
+sudo -n true
 
 has_subid_range() {
   local file=$1 user=$2
@@ -80,77 +78,38 @@ setup_rootless_docker() {
     fi
   fi
 
-  if [[ "$DOCKER_ROOTLESS_AUTOSTART" == true ]]; then
-    systemctl --user enable --now docker.service
-    sudo loginctl enable-linger "$USER"
-  else
-    systemctl --user disable docker.service >/dev/null 2>&1 || true
-    systemctl --user start docker.service
-  fi
+  systemctl --user enable --now docker.service
+  sudo loginctl enable-linger "$USER"
 
   docker context use rootless >/dev/null
 }
 
-if [[ "$INSTALL_DOCKER" == true ]]; then
-  log "Configurazione repository Docker ufficiale"
-  docker_gpg_key="$TOOLS_DIR/tmp/docker-fedora.gpg"
-  download "$DOCKER_GPG_KEY_URL" "$docker_gpg_key"
-  actual_fingerprint="$(gpg --show-keys --with-colons "$docker_gpg_key" 2>/dev/null |
-    awk -F: '$1 == "fpr" { print $10; exit }')"
-  [[ "$actual_fingerprint" == "$DOCKER_GPG_FINGERPRINT" ]] ||
-    die "Fingerprint GPG Docker inatteso: ${actual_fingerprint:-non rilevato}"
-  if [[ ! -f /etc/yum.repos.d/docker-ce.repo ]]; then
-    if ! dnf config-manager --help >/dev/null 2>&1; then
-      install_available_packages dnf5-plugins
-    fi
-    sudo dnf config-manager addrepo --from-repofile "$DOCKER_REPO_URL"
+log "Configurazione repository Docker ufficiale"
+docker_gpg_key="$TOOLS_DIR/tmp/docker-fedora.gpg"
+download "$DOCKER_GPG_KEY_URL" "$docker_gpg_key"
+actual_fingerprint="$(gpg --show-keys --with-colons "$docker_gpg_key" 2>/dev/null |
+  awk -F: '$1 == "fpr" { print $10; exit }')"
+[[ "$actual_fingerprint" == "$DOCKER_GPG_FINGERPRINT" ]] ||
+  die "Fingerprint GPG Docker inatteso: ${actual_fingerprint:-non rilevato}"
+if [[ ! -f /etc/yum.repos.d/docker-ce.repo ]]; then
+  if ! dnf config-manager --help >/dev/null 2>&1; then
+    install_available_packages dnf5-plugins
   fi
-
-  log "Installazione Docker Engine, Rootless extras, Buildx e Compose V2"
-  sudo dnf install -y \
-    docker-ce docker-ce-cli containerd.io docker-ce-rootless-extras \
-    docker-buildx-plugin docker-compose-plugin
-
-  if [[ "$DOCKER_ROOTLESS" == true ]]; then
-    setup_rootless_docker
-  else
-    warn "DOCKER_ROOTLESS=false: Docker Engine è installato ma il setup non abilita accesso tramite gruppo docker."
-  fi
+  sudo dnf config-manager addrepo --from-repofile "$DOCKER_REPO_URL"
 fi
 
-if [[ "$INSTALL_DOCKER_DESKTOP" == true ]]; then
-  log "Prerequisiti Docker Desktop"
-  install_available_packages qemu-kvm gnome-terminal gnome-shell-extension-appindicator
+log "Installazione Docker Engine, Rootless extras, Buildx e Compose V2"
+sudo dnf install -y \
+  docker-ce docker-ce-cli containerd.io docker-ce-rootless-extras \
+  docker-buildx-plugin docker-compose-plugin
 
-  if getent group kvm >/dev/null 2>&1 && ! id -nG "$USER" | tr ' ' '\n' | grep -qx kvm; then
-    sudo usermod -aG kvm "$USER"
-    warn "Utente aggiunto al gruppo kvm: logout/login o riavvio necessario per Docker Desktop."
-  fi
-
-  [[ -e /dev/kvm ]] || warn "/dev/kvm non presente: verifica VT-x/AMD-V nel firmware."
-
-  installed_desktop_version="$(rpm -q --qf '%{VERSION}' docker-desktop 2>/dev/null || true)"
-  if [[ "$installed_desktop_version" != "$DOCKER_DESKTOP_VERSION" ]]; then
-    desktop_rpm="$TOOLS_DIR/tmp/docker-desktop-x86_64.rpm"
-    download_verified "$DOCKER_DESKTOP_RPM_URL" "$desktop_rpm" "$DOCKER_DESKTOP_RPM_SHA256"
-    sudo dnf install -y "$desktop_rpm"
-  fi
-
-  if command -v gnome-extensions >/dev/null 2>&1; then
-    gnome-extensions enable appindicatorsupport@rgcjonas.gmail.com >/dev/null 2>&1 || \
-      warn "AppIndicator installato; potrebbe essere necessario logout/login prima di abilitarlo."
-  fi
-
-  # Docker Desktop richiede accettazione termini al primo avvio; niente autostart.
-  systemctl --user disable docker-desktop.service >/dev/null 2>&1 || true
-fi
+setup_rootless_docker
 
 install -m 0755 "$ROOT_DIR/bin/docker-runtime" "$HOME/.local/bin/docker-runtime"
 
 log "Docker configurato"
 printf '%s\n' \
-  "Engine: $(if [[ "$INSTALL_DOCKER" == true ]]; then echo installato; else echo disabilitato; fi)" \
-  "Rootless: $(if [[ "$DOCKER_ROOTLESS" == true ]]; then echo abilitato; else echo disabilitato; fi)" \
-  "Desktop: $(if [[ "$INSTALL_DOCKER_DESKTOP" == true ]]; then echo installato; else echo disabilitato; fi)" \
+  "Engine: installato" \
+  "Rootless: abilitato con avvio automatico" \
   "Per verificare: docker info && docker compose version" \
-  "Per cambiare runtime: docker-runtime status|rootless|desktop"
+  "Runtime: docker-runtime status|rootless"

@@ -2,7 +2,6 @@
 set -Eeuo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
-[[ "$PROFILE" == "development" && "$INSTALL_VSCODE" == true ]] || exit 0
 
 if ! rpm -q code >/dev/null 2>&1; then
   sudo rpm --import "$VSCODE_GPG_KEY_URL"

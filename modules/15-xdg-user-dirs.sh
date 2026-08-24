@@ -3,8 +3,6 @@ set -Eeuo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
 
-[[ "$USE_ENGLISH_XDG_DIRS" == true ]] || exit 0
-
 command_exists xdg-user-dir || {
   warn "xdg-user-dir non disponibile; rinomina delle cartelle standard saltata."
   exit 0

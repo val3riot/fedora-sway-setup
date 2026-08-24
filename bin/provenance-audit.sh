@@ -83,10 +83,14 @@ for fedora_package in git-core zsh zsh-syntax-highlighting zsh-autosuggestions k
   check_fedora_package "$fedora_package"
 done
 
-if [[ "$(readlink /usr/local/bin/docker 2>/dev/null || true)" == /usr/bin/docker ]]; then
-  ok 'Docker Desktop link' '/usr/local/bin/docker -> /usr/bin/docker (previsto dal vendor)'
+if rpm -q docker-desktop >/dev/null 2>&1; then
+  if [[ "$(readlink /usr/local/bin/docker 2>/dev/null || true)" == /usr/bin/docker ]]; then
+    ok 'Docker Desktop link' '/usr/local/bin/docker -> /usr/bin/docker (previsto dal vendor)'
+  else
+    fail_audit 'Docker Desktop link' '/usr/local/bin/docker non è il link vendor atteso'
+  fi
 else
-  fail_audit 'Docker Desktop link' '/usr/local/bin/docker non è il link vendor atteso'
+  ok 'Docker Desktop link' 'non richiesto: Docker Desktop non installato'
 fi
 
 if [[ "$(type -P starship 2>/dev/null || true)" == "$HOME/.local/bin/starship" ]]; then

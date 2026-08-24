@@ -11,7 +11,6 @@ mkdir -p \
   "$test_root/config" "$test_root/lib" "$test_root/modules" "$test_root/templates" \
   "$test_home/.config/workstation-setup" "$test_home/.oh-my-zsh"
 
-install -m 0644 "$REPO_DIR/config/defaults.env" "$test_root/config/defaults.env"
 install -m 0644 "$REPO_DIR/lib/common.sh" "$test_root/lib/common.sh"
 install -m 0644 "$REPO_DIR/templates/zshrc" "$test_root/templates/zshrc"
 install -m 0755 "$REPO_DIR/modules/20-shell.sh" "$test_root/modules/20-shell.sh"
@@ -21,7 +20,7 @@ install -m 0644 \
 sed -i -e 's/__SSH__/ssh/g' -e 's/__KITTY_WINDOW_ID__/KITTY_WINDOW_ID/g' \
   "$test_home/.config/workstation-setup/env.zsh"
 
-HOME="$test_home" ROOT_DIR="$test_root" PROFILE=development \
+HOME="$test_home" ROOT_DIR="$test_root" PROFILE=base \
   bash "$test_root/modules/20-shell.sh" >/dev/null
 
 env_file="$test_home/.config/workstation-setup/env.zsh"

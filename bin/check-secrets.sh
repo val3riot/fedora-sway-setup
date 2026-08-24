@@ -14,11 +14,9 @@ else
   printf '%s\n' 'OK   secret guardrail'
 fi
 
-for path in config/local.env .env; do
-  if git ls-files --error-unmatch "$path" >/dev/null 2>&1; then
-    printf 'FAIL file locale tracciato: %s\n' "$path" >&2
-    failed=1
-  fi
-done
+if git ls-files --error-unmatch .env >/dev/null 2>&1; then
+  printf '%s\n' 'FAIL file locale tracciato: .env' >&2
+  failed=1
+fi
 
 exit "$failed"

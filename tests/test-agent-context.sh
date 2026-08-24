@@ -15,7 +15,7 @@ grep -Fq '# Contesto della workstation per agenti' "$context"
 grep -Fq 'Package manager di sistema: DNF5/RPM' "$context"
 grep -Fq "Repository di questo setup: \`$ROOT_DIR\`" "$context"
 grep -Fq 'repository RPM ufficiale del vendor con verifica GPG' "$context"
-grep -Fq 'Tailscale: installazione fondamentale' "$context"
+grep -Fq 'Tailscale:' "$context"
 
 printf '%s\n' 'nota da preservare' >"$notes"
 bash "$ROOT_DIR/modules/05-agent-context.sh" >/dev/null

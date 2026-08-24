@@ -3,9 +3,8 @@ set -Eeuo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
 
-[[ "${CONFIG_ZSH_THEME:-false}" == true ]] || exit 0
 
-sudo -v
+sudo -n true
 install_available_packages zsh git zsh-syntax-highlighting zsh-autosuggestions
 
 if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
