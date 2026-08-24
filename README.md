@@ -83,6 +83,20 @@ Un modulo fallito, incluso un download con checksum non valido, viene interrotto
 senza eseguire il file non verificato; gli altri moduli continuano. Al termine il
 setup stampa il report `SUCCESS/FAILED` e restituisce codice 1 se ci sono errori.
 
+## Creazione delle VM
+
+Dopo `./install.sh --dev`, ogni guest può essere creato da una ISO locale senza
+dipendere da nomi o distribuzioni predefiniti:
+
+```bash
+./bin/create-vms.sh laboratorio "$HOME/Tools/ISO/sistema.iso"
+./bin/create-vms.sh test-uefi "$HOME/Tools/ISO/sistema.iso" --memory 8192 --vcpus 4 --disk-size 80 --uefi --tpm
+```
+
+Sono disponibili anche `--osinfo ID` per indicare esplicitamente il sistema
+operativo e `--help` per l'elenco completo delle opzioni. Le VM esistenti con lo
+stesso nome non vengono modificate.
+
 ## Verifica e utility
 
 ```bash
@@ -96,7 +110,7 @@ Altre utility:
 
 ```bash
 ./bin/add-git-identity.sh
-./bin/create-vms.sh
+./bin/create-vms.sh NOME ISO
 ./bin/set-wallpaper.sh
 docker-runtime status
 laptop-power-mode status

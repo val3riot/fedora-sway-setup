@@ -23,12 +23,17 @@
    `./bin/doctor.sh`, e per la provenienza `./bin/provenance-audit.sh`.
 10. Preservare file e modifiche dell'utente. I file dichiarati “gestiti” dal
     setup possono essere rigenerati; `LOCAL_NOTES.md` non deve essere sovrascritto.
+11. Dopo ogni modifica strutturale al repository, aggiornare il contesto degli
+    agenti nelle relative fonti del setup e rigenerare i file in `~/.agent` con
+    `ROOT_DIR="$PWD" PROFILE=base DESKTOP_ENV="${DESKTOP_ENV:-none}" bash modules/05-agent-context.sh`.
 
 ## Note per componenti specifici
 
 - Docker opera preferibilmente in modalità rootless; usare `docker-runtime` per
   passare consapevolmente tra rootless e Docker Desktop.
-- Le VM usano `qemu:///system`, rete libvirt `default`, dischi QCOW2 e ISO locali.
+- Le VM usano `qemu:///system`, rete libvirt `default`, dischi QCOW2 e ISO in
+  `~/Tools/ISO`; crearle con `bin/create-vms.sh NOME ISO`, senza assumere sistemi
+  operativi predefiniti.
 - Tailscale viene installato e avviato dal setup, ma il login alla tailnet resta
   un'azione esplicita dell'utente.
 - Identità Git e alias SSH si aggiungono con `bin/add-git-identity.sh`; non

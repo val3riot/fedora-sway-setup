@@ -38,4 +38,11 @@ grep -Fq "printf 'FAILED (%d)" "$ROOT_DIR/install.sh"
 grep -Fq 'timedatectl set-timezone Europe/Rome' "$ROOT_DIR/modules/10-system-packages.sh"
 grep -Fq 'timedatectl set-ntp true' "$ROOT_DIR/modules/10-system-packages.sh"
 
+vm_help="$($ROOT_DIR/bin/create-vms.sh --help)"
+grep -Fq 'Uso: create-vms.sh NOME ISO [opzioni]' <<<"$vm_help"
+grep -Fq -- '--memory MIB' <<<"$vm_help"
+grep -Fq -- '--uefi' <<<"$vm_help"
+grep -Fq -- '--tpm' <<<"$vm_help"
+! grep -Eq 'debian|fedora|windows11|w11' "$ROOT_DIR/bin/create-vms.sh"
+
 printf '%s\n' 'OK   CLI --help/--info'

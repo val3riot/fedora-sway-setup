@@ -6,27 +6,81 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
 
-VM_ISO_DIR="$HOME/ISO"
-VM_DEBIAN_ISO="$VM_ISO_DIR/debian.iso"
-VM_FEDORA_ISO="$VM_ISO_DIR/fedora.iso"
-VM_WINDOWS11_ISO="$VM_ISO_DIR/windows11.iso"
 VM_STORAGE_DIR=/var/lib/libvirt/images
 
 usage() {
   cat <<'EOF'
-Uso: create-vms.sh [all|debian|fedora|windows11 ...]
+Uso: create-vms.sh NOME ISO [opzioni]
 
-Crea guest libvirt persistenti usando le ISO in ~/ISO.
-Le VM già esistenti non vengono modificate. Le installazioni si completano
-graficamente in virt-viewer/virt-manager.
+Crea un guest libvirt persistente da una ISO locale. Le VM già esistenti non
+vengono modificate. L'installazione si completa graficamente in virt-manager.
+
+Opzioni:
+  --memory MIB       Memoria RAM (predefinita: 4096)
+  --vcpus NUMERO     CPU virtuali (predefinite: 2)
+  --disk-size GIB    Dimensione del disco (predefinita: 40)
+  --osinfo ID        Identificativo libosinfo (predefinito: rilevamento automatico)
+  --uefi             Usa firmware UEFI
+  --tpm              Aggiunge un TPM 2.0 virtuale
+  --help, -h         Mostra questa guida
 EOF
 }
 
-(( $# )) || set -- all
-if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+if (( $# == 0 )) || [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
   usage
-  exit 0
+  (( $# == 0 )) && exit 2 || exit 0
 fi
+(( $# >= 2 )) || die "Uso: create-vms.sh NOME ISO [opzioni]."
+
+name=$1
+iso=$2
+shift 2
+memory=4096
+vcpus=2
+disk_size=40
+os_name='detect=on,require=off'
+declare -a extra_args=()
+
+require_positive_integer() {
+  local option=$1 value=${2:-}
+  [[ "$value" =~ ^[1-9][0-9]*$ ]] || die "$option richiede un intero positivo."
+}
+
+while (( $# )); do
+  case "$1" in
+    --memory)
+      (( $# >= 2 )) || die "Valore mancante per --memory."
+      require_positive_integer --memory "$2"
+      memory=$2
+      shift 2
+      ;;
+    --vcpus)
+      (( $# >= 2 )) || die "Valore mancante per --vcpus."
+      require_positive_integer --vcpus "$2"
+      vcpus=$2
+      shift 2
+      ;;
+    --disk-size)
+      (( $# >= 2 )) || die "Valore mancante per --disk-size."
+      require_positive_integer --disk-size "$2"
+      disk_size=$2
+      shift 2
+      ;;
+    --osinfo)
+      (( $# >= 2 )) || die "Valore mancante per --osinfo."
+      [[ -n "$2" && "$2" != -* ]] || die "Valore non valido per --osinfo."
+      os_name=$2
+      shift 2
+      ;;
+    --uefi) extra_args+=(--boot uefi); shift ;;
+    --tpm) extra_args+=(--tpm 'backend.type=emulator,backend.version=2.0,model=tpm-crb'); shift ;;
+    *) die "Opzione non valida: $1" ;;
+  esac
+done
+
+[[ "$name" =~ ^[[:alnum:]][[:alnum:]_.-]*$ ]] ||
+  die "Nome VM non valido: usa solo lettere, numeri, punto, trattino e underscore."
+[[ -r "$iso" ]] || die "ISO non leggibile: $iso"
 
 command_exists virsh || die "virsh non trovato: esegui prima ./install.sh --dev."
 command_exists virt-install || die "virt-install non trovato: esegui prima ./install.sh --dev."
@@ -48,14 +102,10 @@ ensure_network() {
 }
 
 create_vm() {
-  local name=$1 iso=$2 memory=$3 vcpus=$4 disk_size=$5 os_name=$6
-  shift 6
-
   if "${libvirt[@]}" dominfo "$name" >/dev/null 2>&1; then
     printf 'SKIP %-12s esiste già\n' "$name"
     return
   fi
-  [[ -r "$iso" ]] || die "ISO non leggibile per $name: $iso"
 
   log "Creazione $name"
   "${elevate[@]}" virt-install \
@@ -71,7 +121,7 @@ create_vm() {
     --video virtio \
     --osinfo "$os_name" \
     --noautoconsole \
-    "$@"
+    "${extra_args[@]}"
   printf 'OK   %-12s avvia la console con: virt-manager\n' "$name"
 }
 
@@ -81,46 +131,4 @@ if [[ ! -d "$VM_STORAGE_DIR" ]]; then
   sudo install -d -m 0755 "$VM_STORAGE_DIR"
 fi
 
-declare -a requested=("$@")
-if [[ " ${requested[*]} " == *" all "* ]]; then
-  requested=(debian fedora windows11)
-fi
-
-# Evita una creazione parziale quando viene richiesto un gruppo di VM.
-for guest in "${requested[@]}"; do
-  case "$guest" in
-    debian)
-      "${libvirt[@]}" dominfo debian >/dev/null 2>&1 ||
-        [[ -r "$VM_DEBIAN_ISO" ]] || die "ISO non leggibile per debian: $VM_DEBIAN_ISO"
-      ;;
-    fedora)
-      "${libvirt[@]}" dominfo fedora >/dev/null 2>&1 ||
-        [[ -r "$VM_FEDORA_ISO" ]] || die "ISO non leggibile per fedora: $VM_FEDORA_ISO"
-      ;;
-    windows11|w11)
-      "${libvirt[@]}" dominfo windows11 >/dev/null 2>&1 ||
-        [[ -r "$VM_WINDOWS11_ISO" ]] || die "ISO non leggibile per windows11: $VM_WINDOWS11_ISO"
-      ;;
-    *) usage >&2; die "Guest non valido: $guest" ;;
-  esac
-done
-
-for guest in "${requested[@]}"; do
-  case "$guest" in
-    debian)
-      create_vm debian "$VM_DEBIAN_ISO" 4096 2 40 detect=on,require=off
-      ;;
-    fedora)
-      create_vm fedora "$VM_FEDORA_ISO" 4096 2 50 detect=on,require=off
-      ;;
-    windows11|w11)
-      create_vm windows11 "$VM_WINDOWS11_ISO" 8192 4 80 win11 \
-        --boot uefi \
-        --tpm backend.type=emulator,backend.version=2.0,model=tpm-crb
-      ;;
-    *)
-      usage >&2
-      die "Guest non valido: $guest"
-      ;;
-  esac
-done
+create_vm
