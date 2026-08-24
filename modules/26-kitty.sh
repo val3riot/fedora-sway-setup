@@ -5,7 +5,7 @@ load_config "$ROOT_DIR"
 
 
 sudo -n true
-install_available_packages kitty kitty-terminfo ncurses
+install_available_packages kitty kitty-terminfo ncurses zsh
 command_exists infocmp || die "infocmp non disponibile dopo l'installazione di ncurses."
 infocmp -x xterm-kitty >/dev/null 2>&1 ||
   die "Il terminfo locale xterm-kitty non è disponibile."

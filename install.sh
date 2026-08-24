@@ -10,7 +10,7 @@ show_info() {
 Fedora Workstation Setup
 
 USO
-  ./install.sh PROFILO [COMPONENTI]
+  ./install.sh [PROFILO] COMPONENTE...
 
 PROFILI
   --base          Sistema essenziale, shell, rete e strumenti di base.
@@ -19,8 +19,8 @@ PROFILI
 
 COMPONENTI
   --agent         Installa Codex, Claude Code e Copilot CLI.
-  --sway          Installa Sway e applica esclusivamente la configurazione Sway.
-  --gnome         Installa GNOME e applica esclusivamente la configurazione GNOME.
+  --sway          Installa/aggiorna esclusivamente Sway e la sua configurazione.
+  --gnome         Installa/aggiorna esclusivamente GNOME e la sua configurazione.
 
 OPZIONI
   --set-wallpaper     Sceglie uno sfondo dalla cartella wallpapers/.
@@ -102,7 +102,10 @@ while (($#)); do
   shift
 done
 
-[[ "$profile_selected" == true ]] || die "Specifica un profilo: --base, --dev oppure --all."
+if [[ "$profile_selected" == false ]]; then
+  [[ "$DESKTOP_ENV" != none ]] || die "Specifica un profilo o un desktop: --base, --dev, --all, --sway oppure --gnome."
+  PROFILE=desktop
+fi
 
 export ROOT_DIR PROFILE DESKTOP_ENV
 

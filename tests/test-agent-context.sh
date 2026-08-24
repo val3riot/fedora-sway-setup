@@ -5,6 +5,10 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 test_dir="$(mktemp -d)"
 trap 'rm -rf "$test_dir"' EXIT
 
+grep -Fq 'leggere `~/.agent/AGENTS.md` e `~/.agent/LOCAL_NOTES.md`' "$ROOT_DIR/AGENTS.md"
+grep -Fq 'non modificarlo direttamente' "$ROOT_DIR/AGENTS.md"
+grep -Fq 'Non sovrascrivere `~/.agent/LOCAL_NOTES.md`' "$ROOT_DIR/AGENTS.md"
+
 export ROOT_DIR PROFILE=base HOME="$test_dir/home"
 mkdir -p "$HOME"
 bash "$ROOT_DIR/modules/05-agent-context.sh" >/dev/null

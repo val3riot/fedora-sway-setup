@@ -5,7 +5,7 @@ Eseguire lo script come utente normale; `sudo` viene richiesto una sola volta.
 
 ## Profili software
 
-È obbligatorio specificare esattamente un profilo:
+I profili software disponibili sono:
 
 ```bash
 ./install.sh --base
@@ -23,14 +23,18 @@ Eseguire lo script come utente normale; `sudo` viene richiesto una sola volta.
 ## Componenti combinabili
 
 ```bash
+./install.sh --sway
+./install.sh --gnome
 ./install.sh --base --agent --sway
 ./install.sh --dev --gnome
 ./install.sh --all --sway
 ```
 
 - `--agent` aggiunge Codex, Claude Code e Copilot CLI a `--base` o `--dev`.
-- `--sway` installa Sway e applica soltanto la configurazione Sway.
-- `--gnome` installa GNOME e applica soltanto la configurazione GNOME.
+- `--sway` installa o aggiorna Sway, Kitty e le relative configurazioni; non
+  richiede un profilo software.
+- `--gnome` installa o aggiorna soltanto GNOME e la configurazione GNOME; non
+  richiede un profilo software.
 
 `--sway` e `--gnome` sono mutuamente esclusivi. `--all` non sceglie un desktop:
 per applicarne la configurazione bisogna indicarlo esplicitamente.
