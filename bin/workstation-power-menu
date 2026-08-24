@@ -2,7 +2,8 @@
 set -Eeuo pipefail
 
 menu() {
-  fuzzel --dmenu --prompt="$1" --width=28 --lines="$2" --minimal-lines
+  fuzzel --dmenu --prompt="$1" --width=28 --lines="$2" --minimal-lines \
+    --no-exit-on-keyboard-focus-loss
 }
 
 confirm() {

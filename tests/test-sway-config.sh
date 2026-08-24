@@ -65,6 +65,7 @@ grep -Fq 'on-click-right": "$HOME/.local/bin/cliamp-widget close"' "$ROOT_DIR/te
 grep -Fq 'on-click": "$HOME/.local/bin/workstation-power-profile-menu"' "$ROOT_DIR/templates/sway/waybar-config.jsonc"
 grep -Fq "'Dev 60%' 'Risparmio' 'Prestazioni'" "$ROOT_DIR/bin/workstation-power-profile-menu"
 grep -Fq -- '--no-exit-on-keyboard-focus-loss' "$ROOT_DIR/bin/workstation-power-profile-menu"
+grep -Fq -- '--no-exit-on-keyboard-focus-loss' "$ROOT_DIR/bin/workstation-power-menu"
 grep -Fq '"format": "󰘚 {percentage}%"' "$ROOT_DIR/templates/sway/waybar-config.jsonc"
 grep -Fq '"tooltip-format": "<tt>{calendar}</tt>"' "$ROOT_DIR/templates/sway/waybar-config.jsonc"
 grep -Fq '"iso8601": true' "$ROOT_DIR/templates/sway/waybar-config.jsonc"

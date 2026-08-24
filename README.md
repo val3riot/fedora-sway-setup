@@ -69,6 +69,8 @@ selettore dei profili energetici:
 
 Il selettore resta aperto se il puntatore cambia finestra; si chiude con `Esc` o
 dopo la scelta. L'autorizzazione amministrativa avviene tramite PolicyKit.
+Anche il menu di sistema aperto dall'icona di spegnimento resta visibile quando
+il focus lascia Waybar e si chiude con `Esc` o dopo aver scelto un'azione.
 
 ## Configurazione
 
