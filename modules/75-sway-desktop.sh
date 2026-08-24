@@ -15,13 +15,22 @@ for command_name in sway waybar; do
 done
 
 install -m 0755 "$ROOT_DIR/bin/waybar-cpu-temperature" "$HOME/.local/bin/waybar-cpu-temperature"
+install -m 0755 "$ROOT_DIR/bin/sway-shortcuts" "$HOME/.local/bin/sway-shortcuts"
 install -D -m 0644 \
   "$ROOT_DIR/wallpapers/mita.jpg" \
   "$HOME/.local/share/backgrounds/workstation-setup.jpg"
 install_managed_config \
+  "$ROOT_DIR/templates/sway/sway-shortcuts.desktop" \
+  "$HOME/.local/share/applications/sway-shortcuts.desktop" \
+  '# workstation-setup: managed Sway shortcuts entry'
+install_managed_config \
   "$ROOT_DIR/templates/sway/config" \
   "$HOME/.config/sway/config" \
   '# workstation-setup: managed sway config'
+install_managed_config \
+  "$ROOT_DIR/templates/sway/fuzzel.ini" \
+  "$HOME/.config/fuzzel/fuzzel.ini" \
+  '# workstation-setup: managed Fuzzel config'
 install_managed_config \
   "$ROOT_DIR/templates/sway/waybar-config.jsonc" \
   "$HOME/.config/waybar/config" \

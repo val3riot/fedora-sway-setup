@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+command -v fuzzel >/dev/null 2>&1 || {
+  printf '%s\n' 'fuzzel non disponibile' >&2
+  exit 1
+}
+
+shortcuts=(
+  'Super + Invio             Apri il terminale'
+  'Super + D                 Cerca applicazioni'
+  'Super + Maiusc + Q        Chiudi la finestra attiva'
+  'Super + Maiusc + C        Ricarica Sway'
+  'Super + Maiusc + E        Esci da Sway'
+  'Super + Maiusc + X        Blocca lo schermo'
+  'Super + 1…0               Passa al workspace 1…10'
+  'Super + H/J/K/L           Sposta il focus'
+  'Super + frecce            Sposta il focus'
+  'Super + Maiusc + H/J/K/L  Sposta la finestra'
+  'Tasti volume              Regola o disattiva il volume'
+  'Tasti luminosità          Regola la luminosità'
+  'Tasti multimediali        Controlla la riproduzione'
+)
+
+printf '%s\n' "${shortcuts[@]}" |
+  fuzzel --dmenu --prompt='Scorciatoie > ' --width=62 --lines=13 >/dev/null || true
