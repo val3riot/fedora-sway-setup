@@ -4,6 +4,9 @@ source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
 
 sudo -n true
+sudo timedatectl set-timezone Europe/Rome
+sudo timedatectl set-ntp true
+
 if [[ "$PROFILE" != dev ]]; then
   sudo dnf upgrade --refresh -y
 fi

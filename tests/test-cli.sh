@@ -25,5 +25,7 @@ grep -Fq './install.sh --sway' "$ROOT_DIR/README.md"
 grep -Fq 'warn "Modulo fallito, il setup continua: $module_name"' "$ROOT_DIR/install.sh"
 grep -Fq "printf 'SUCCESS (%d)" "$ROOT_DIR/install.sh"
 grep -Fq "printf 'FAILED (%d)" "$ROOT_DIR/install.sh"
+grep -Fq 'timedatectl set-timezone Europe/Rome' "$ROOT_DIR/modules/10-system-packages.sh"
+grep -Fq 'timedatectl set-ntp true' "$ROOT_DIR/modules/10-system-packages.sh"
 
 printf '%s\n' 'OK   CLI --help/--info'
