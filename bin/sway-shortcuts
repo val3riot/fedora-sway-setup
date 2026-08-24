@@ -13,6 +13,8 @@ shortcuts=(
   'Super + Maiusc + C        Ricarica Sway'
   'Super + Maiusc + E        Esci da Sway'
   'Super + Maiusc + X        Blocca lo schermo'
+  'Super + B                 Dividi in orizzontale'
+  'Super + V                 Dividi in verticale'
   'Super + 1…0               Passa al workspace 1…10'
   'Super + H/J/K/L           Sposta il focus'
   'Super + frecce            Sposta il focus'
@@ -23,4 +25,4 @@ shortcuts=(
 )
 
 printf '%s\n' "${shortcuts[@]}" |
-  fuzzel --dmenu --prompt='Scorciatoie > ' --width=62 --lines=13 >/dev/null || true
+  fuzzel --dmenu --prompt='Scorciatoie > ' --width=62 --lines=15 >/dev/null || true
