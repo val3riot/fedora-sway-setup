@@ -10,30 +10,29 @@ show_info() {
 Fedora Workstation Setup
 
 USO
-  ./install.sh [PROFILO] [OPZIONI]
+  ./install.sh PROFILO [COMPONENTI]
 
 PROFILI
   --base          Sistema essenziale, shell, rete e strumenti di base.
-  --development   Ambiente di sviluppo completo; profilo predefinito.
-  --desktop       Applicazioni desktop e configurazione GNOME.
-  --all           Ambiente di sviluppo e applicazioni desktop.
+  --dev           Strumenti di sviluppo indipendenti dal desktop, incluso Docker rootless.
+  --all           Base, sviluppo, applicazioni desktop e agenti CLI.
+
+COMPONENTI
+  --agent         Installa Codex, Claude Code e Copilot CLI.
+  --sway          Installa Sway e applica esclusivamente la configurazione Sway.
+  --gnome         Installa GNOME e applica esclusivamente la configurazione GNOME.
 
 OPZIONI
-  --config-zsh-theme  Installa e configura Starship e i plugin Zsh.
   --set-wallpaper     Sceglie uno sfondo dalla cartella wallpapers/.
   --help, --info, -h  Mostra questa guida.
 
 COMPONENTI PRINCIPALI
-  Development   Kitty, tmux, SDKMAN, Node/NVM, Miniconda, TeX Live,
-                Docker rootless/Desktop, VS Code, KVM/libvirt e Vagrant.
-  Desktop       DBeaver, Bruno, JetBrains Toolbox, Thunderbird,
-                LibreOffice, Discord, Obsidian e Dash to Dock.
-  Agenti AI     Codex, Claude Code e Copilot CLI; opt-in con
-                INSTALL_AGENTS=true in config/local.env.
+  Dev           Kitty, tmux, SDKMAN, Node/NVM, Miniconda, TeX Live,
+                Docker rootless, VS Code, KVM/libvirt e Vagrant.
+  All           Base, Dev, app desktop e agenti; GNOME/Sway non impliciti.
 
 CONFIGURAZIONE
-  cp config/local.env.example config/local.env
-  Versioni, fonti e checksum: config/sources.env
+  Fonti: config/sources.env; versioni e checksum: config/versions.env
 
 VERIFICA
   ./bin/test.sh                 Suite completa del repository.
@@ -63,31 +62,37 @@ command_exists sudo || die "sudo non è installato."
 load_config "$ROOT_DIR"
 validate_config
 
-MODE=--development
-PROFILE=development
-INCLUDE_DESKTOP_APPS=false
-CONFIG_ZSH_THEME=false
+PROFILE=""
+INSTALL_BASE=false
+INSTALL_DEV=false
+INSTALL_APPS=false
+INSTALL_AGENTS=false
+DESKTOP_ENV=none
 profile_selected=false
 
 while (($#)); do
   case "$1" in
-    base|--base)
+    --base)
       [[ "$profile_selected" == false ]] || die "Specifica un solo profilo."
-      MODE=--base; PROFILE=base; INCLUDE_DESKTOP_APPS=false; profile_selected=true
+      PROFILE=base; INSTALL_BASE=true; profile_selected=true
       ;;
-    development|--develop|--development)
+    --dev)
       [[ "$profile_selected" == false ]] || die "Specifica un solo profilo."
-      MODE=--development; PROFILE=development; INCLUDE_DESKTOP_APPS=false; profile_selected=true
-      ;;
-    --desktop)
-      [[ "$profile_selected" == false ]] || die "Specifica un solo profilo."
-      MODE=--desktop; PROFILE=development; INCLUDE_DESKTOP_APPS=true; profile_selected=true
+      PROFILE=dev; INSTALL_DEV=true; profile_selected=true
       ;;
     --all)
       [[ "$profile_selected" == false ]] || die "Specifica un solo profilo."
-      MODE=--all; PROFILE=development; INCLUDE_DESKTOP_APPS=true; profile_selected=true
+      PROFILE=all; INSTALL_BASE=true; INSTALL_DEV=true; INSTALL_APPS=true; INSTALL_AGENTS=true; profile_selected=true
       ;;
-    --config-zsh-theme) CONFIG_ZSH_THEME=true ;;
+    --agent) INSTALL_AGENTS=true ;;
+    --sway)
+      [[ "$DESKTOP_ENV" == none ]] || die "--sway e --gnome sono mutuamente esclusivi."
+      DESKTOP_ENV=sway
+      ;;
+    --gnome)
+      [[ "$DESKTOP_ENV" == none ]] || die "--sway e --gnome sono mutuamente esclusivi."
+      DESKTOP_ENV=gnome
+      ;;
     --set-wallpaper)
       (( $# == 1 )) || die "--set-wallpaper non accetta altri argomenti."
       exec "$ROOT_DIR/bin/set-wallpaper.sh"
@@ -97,7 +102,12 @@ while (($#)); do
   shift
 done
 
-export ROOT_DIR PROFILE INCLUDE_DESKTOP_APPS CONFIG_ZSH_THEME
+[[ "$profile_selected" == true ]] || die "Specifica un profilo: --base, --dev oppure --all."
+
+export ROOT_DIR PROFILE DESKTOP_ENV
+
+start_sudo_keepalive
+trap stop_sudo_keepalive EXIT
 
 log "Controllo sintassi degli script"
 while IFS= read -r -d '' script; do
@@ -106,33 +116,63 @@ done < <(find "$ROOT_DIR" -type f -name '*.sh' -print0)
 bash -n "$ROOT_DIR/bin/laptop-power-mode"
 bash -n "$ROOT_DIR/bin/docker-runtime"
 
+module_enabled() {
+  case "$1" in
+    00-directories.sh) return 0 ;;
+    05-agent-context.sh) return 1 ;;
+    10-system-packages.sh) [[ "$INSTALL_BASE" == true || "$INSTALL_DEV" == true ]] ;;
+    12-tailscale.sh|15-xdg-user-dirs.sh|20-shell.sh|25-zsh-theme.sh|80-git.sh|90-power-mode.sh)
+      [[ "$INSTALL_BASE" == true ]]
+      ;;
+    26-kitty.sh|27-tmux.sh|30-sdkman.sh|40-node.sh|50-miniconda.sh|55-docker.sh|57-virtualization.sh|60-vscode.sh)
+      [[ "$INSTALL_DEV" == true ]]
+      ;;
+    45-agents.sh) [[ "$INSTALL_AGENTS" == true ]] ;;
+    70-desktop-apps.sh) [[ "$INSTALL_APPS" == true ]] ;;
+    75-sway-desktop.sh) [[ "$DESKTOP_ENV" == sway ]] ;;
+    76-gnome-desktop.sh) [[ "$DESKTOP_ENV" == gnome ]] ;;
+    *) die "Modulo senza categoria: $1" ;;
+  esac
+}
+
+successful_modules=()
+failed_modules=()
+
 for module in "$ROOT_DIR"/modules/*.sh; do
   module_name="$(basename "$module")"
-  if [[ "$MODE" == --desktop && "$module_name" != 70-desktop-apps.sh &&
-        ! ( "$CONFIG_ZSH_THEME" == true && "$module_name" == 25-zsh-theme.sh ) ]]; then
-    continue
-  fi
+  module_enabled "$module_name" || continue
   log "Modulo: $module_name"
-  if ! bash "$module"; then
-    die "Modulo fallito: $module_name"
+  # Dopo l'unico `sudo -v` iniziale il setup è deliberatamente non interattivo.
+  # Un installer che tenta di leggere deve ricevere EOF, mai bloccare il flusso.
+  if bash "$module" </dev/null; then
+    successful_modules+=("$module_name")
+  else
+    failed_modules+=("$module_name")
+    warn "Modulo fallito, il setup continua: $module_name"
   fi
 done
 
-if [[ "$MODE" == --desktop ]]; then
-  log "Sezione desktop completata"
-  printf '%s\n' \
-    "Le applicazioni desktop abilitate sono installate." \
-    "Verifica con: $ROOT_DIR/bin/doctor.sh"
-  if rpm -q gnome-shell-extension-dash-to-dock >/dev/null 2>&1 &&
-     ! gnome-extensions list --enabled 2>/dev/null | grep -Fqx dash-to-dock@micxgx.gmail.com; then
-    printf '%s\n' "Esegui logout/login per caricare Dash to Dock, quindi rilancia: $0 --desktop"
-  else
-    printf '%s\n' "Non è necessario riavviare la sessione."
-  fi
+log "Aggiornamento finale del contesto macchina per agenti"
+if bash "$ROOT_DIR/modules/05-agent-context.sh" </dev/null; then
+  successful_modules+=("05-agent-context.sh")
 else
-  log "Setup completato"
-  printf '%s\n' \
-    "Riavvia la sessione per rendere Zsh la shell predefinita." \
-    "Poi esegui: $ROOT_DIR/bin/doctor.sh" \
-    "Per aggiungere account Git: $ROOT_DIR/bin/add-git-identity.sh"
+  failed_modules+=("05-agent-context.sh")
+  warn "Aggiornamento del contesto agenti fallito."
 fi
+
+log "Report finale"
+printf 'SUCCESS (%d)\n' "${#successful_modules[@]}"
+printf '  %s\n' "${successful_modules[@]}"
+if ((${#failed_modules[@]})); then
+  printf 'FAILED (%d)\n' "${#failed_modules[@]}" >&2
+  printf '  %s\n' "${failed_modules[@]}" >&2
+else
+  printf '%s\n' 'FAILED (0)'
+fi
+
+printf '%s\n' \
+  "Profilo software: $PROFILE; desktop configurato: $DESKTOP_ENV." \
+  "Riavvia la sessione per applicare shell, gruppi e desktop." \
+  "Verifica con: $ROOT_DIR/bin/doctor.sh"
+
+((${#failed_modules[@]} == 0)) || exit 1

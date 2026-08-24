@@ -70,5 +70,7 @@ fi
 
 printf '\nProfilo creato. Usa questo alias nei remote:\n'
 printf '  git clone %s@%s:organizzazione/repository.git\n\n' "$ssh_user" "$host_alias"
+printf 'Gli URL con l host reale non usano automaticamente questa chiave.\n'
+printf 'Per repository esistenti: git remote set-url origin %s@%s:organizzazione/repository.git\n\n' "$ssh_user" "$host_alias"
 printf 'Chiave pubblica da registrare sul servizio Git:\n'
 cat "$key_file.pub"

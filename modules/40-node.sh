@@ -2,7 +2,6 @@
 set -Eeuo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
-[[ "$PROFILE" == "development" && "$INSTALL_NVM" == true ]] || exit 0
 
 export NVM_DIR="$TOOLS_DIR/nvm"
 if [[ ! -s "$NVM_DIR/nvm.sh" ]]; then

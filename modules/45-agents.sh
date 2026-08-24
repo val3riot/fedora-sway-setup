@@ -3,7 +3,6 @@ set -Eeuo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
 
-[[ "$PROFILE" == "development" && "$INSTALL_AGENTS" == true ]] || exit 0
 
 AGENTS_ROOT="$TOOLS_DIR/Agents"
 CODEX_HOME="$HOME/.codex"
@@ -12,6 +11,24 @@ COPILOT_HOME="$AGENTS_ROOT/copilot"
 export AGENTS_ROOT CODEX_HOME CLAUDE_CONFIG_DIR COPILOT_HOME
 mkdir -p "$AGENTS_ROOT" "$CODEX_HOME" "$CLAUDE_CONFIG_DIR" "$COPILOT_HOME" "$HOME/.local/bin"
 chmod 700 "$AGENTS_ROOT" "$CODEX_HOME" "$CLAUDE_CONFIG_DIR" "$COPILOT_HOME"
+command_exists setsid || die "setsid non disponibile: installa util-linux."
+
+agent_version() {
+  local executable=$1 executable_path="$HOME/.local/bin/$1"
+  if [[ ! -x "$executable_path" ]]; then
+    executable_path="$(command -v "$executable" 2>/dev/null || true)"
+  fi
+  [[ -n "$executable_path" ]] || return 1
+  "$executable_path" --version 2>/dev/null |
+    grep -Eo '[0-9]+\.[0-9]+\.[0-9]+([-+][[:alnum:].-]+)?' |
+    head -n 1
+}
+
+agent_is_current() {
+  local executable=$1 expected_version=$2 installed_version
+  installed_version="$(agent_version "$executable" || true)"
+  [[ "$installed_version" == "$expected_version" ]]
+}
 
 # Mantiene il percorso organizzativo storico senza spostare ~/.codex mentre
 # Codex può essere in esecuzione e senza separare autenticazione e configurazione.
@@ -45,39 +62,49 @@ install_vendor_agent() {
   download_verified "$url" "$installer" "$expected_sha256"
   # I bootstrap non necessitano delle credenziali applicative. Non ereditarle:
   # limita l'impatto anche in caso di compromissione della fonte vendor.
-  env -u GITHUB_TOKEN -u GH_TOKEN -u OPENAI_API_KEY -u ANTHROPIC_API_KEY \
-    bash "$installer" "$@"
+  setsid --wait env -u GITHUB_TOKEN -u GH_TOKEN -u OPENAI_API_KEY -u ANTHROPIC_API_KEY \
+    CODEX_NON_INTERACTIVE=true bash "$installer" "$@" </dev/null
 }
 
-# Le configurazioni, le sessioni e l'autenticazione non vengono rimosse.
-remove_legacy_npm_agent '@openai/codex'
-remove_legacy_npm_agent '@anthropic-ai/claude-code'
-remove_legacy_npm_agent '@github/copilot'
+if agent_is_current codex "$CODEX_VERSION"; then
+  log "Codex $CODEX_VERSION già installato: nessuna reinstallazione"
+else
+  remove_legacy_npm_agent '@openai/codex'
+  install_vendor_agent \
+    'OpenAI Codex (standalone)' \
+    "$CODEX_INSTALL_URL" \
+    "$TOOLS_DIR/tmp/install-codex.sh" \
+    "$CODEX_INSTALL_SHA256" \
+    --release "$CODEX_VERSION"
+fi
 
-install_vendor_agent \
-  'OpenAI Codex (standalone)' \
-  "$CODEX_INSTALL_URL" \
-  "$TOOLS_DIR/tmp/install-codex.sh" \
-  "$CODEX_INSTALL_SHA256" \
-  --release "$CODEX_VERSION"
+if agent_is_current claude "$CLAUDE_VERSION"; then
+  log "Claude Code $CLAUDE_VERSION già installato: nessuna reinstallazione"
+else
+  remove_legacy_npm_agent '@anthropic-ai/claude-code'
+  install_vendor_agent \
+    'Anthropic Claude Code (native)' \
+    "$CLAUDE_INSTALL_URL" \
+    "$TOOLS_DIR/tmp/install-claude-code.sh" \
+    "$CLAUDE_INSTALL_SHA256" \
+    "$CLAUDE_VERSION"
+fi
 
-install_vendor_agent \
-  'Anthropic Claude Code (native)' \
-  "$CLAUDE_INSTALL_URL" \
-  "$TOOLS_DIR/tmp/install-claude-code.sh" \
-  "$CLAUDE_INSTALL_SHA256" \
-  "$CLAUDE_VERSION"
+if agent_is_current copilot "$COPILOT_VERSION"; then
+  log "Copilot CLI $COPILOT_VERSION già installato: nessuna reinstallazione"
+else
+  remove_legacy_npm_agent '@github/copilot'
+  log 'Installazione GitHub Copilot CLI dallo script ufficiale'
+  copilot_installer="$TOOLS_DIR/tmp/install-copilot-cli.sh"
+  download_verified "$COPILOT_INSTALL_URL" "$copilot_installer" "$COPILOT_INSTALL_SHA256"
+  setsid --wait env -u GITHUB_TOKEN -u GH_TOKEN -u OPENAI_API_KEY -u ANTHROPIC_API_KEY \
+    VERSION="$COPILOT_VERSION" PREFIX="$HOME/.local" \
+    bash "$copilot_installer" </dev/null
+fi
 
-log 'Installazione GitHub Copilot CLI dallo script ufficiale'
-copilot_installer="$TOOLS_DIR/tmp/install-copilot-cli.sh"
-download_verified "$COPILOT_INSTALL_URL" "$copilot_installer" "$COPILOT_INSTALL_SHA256"
-env -u GITHUB_TOKEN -u GH_TOKEN -u OPENAI_API_KEY -u ANTHROPIC_API_KEY \
-  VERSION="$COPILOT_VERSION" PREFIX="$HOME/.local" bash "$copilot_installer"
-
-for executable in codex claude copilot; do
-  [[ -x "$HOME/.local/bin/$executable" ]] ||
-    die "$executable non è disponibile nel path atteso: $HOME/.local/bin/$executable"
-done
+agent_is_current codex "$CODEX_VERSION" || die "Codex $CODEX_VERSION non disponibile dopo il setup."
+agent_is_current claude "$CLAUDE_VERSION" || die "Claude Code $CLAUDE_VERSION non disponibile dopo il setup."
+agent_is_current copilot "$COPILOT_VERSION" || die "Copilot CLI $COPILOT_VERSION non disponibile dopo il setup."
 
 printf '%s\n' \
   "AGENTS_ROOT=$AGENTS_ROOT" \

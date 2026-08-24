@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+format_temperature() {
+  local input=$1 millidegrees
+  millidegrees="$(cat "$input" 2>/dev/null || true)"
+  [[ "$millidegrees" =~ ^-?[0-9]+$ ]] || return 1
+  awk -v millidegrees="$millidegrees" 'BEGIN { printf "%.0f°C\n", millidegrees / 1000 }'
+}
+
+for hwmon in /sys/class/hwmon/hwmon*; do
+  [[ -r "$hwmon/name" ]] || continue
+  sensor_name="$(<"$hwmon/name")"
+  case "$sensor_name" in
+    coretemp|k10temp|zenpower)
+      preferred_input=""
+      for label in "Package id 0" Tctl Tdie; do
+        for label_file in "$hwmon"/temp*_label; do
+          [[ -r "$label_file" ]] || continue
+          [[ "$(<"$label_file")" == "$label" ]] || continue
+          input_file="${label_file%_label}_input"
+          [[ -r "$input_file" ]] && preferred_input="$input_file" && break 2
+        done
+      done
+      if [[ -z "$preferred_input" ]]; then
+        preferred_input="$(find "$hwmon" -maxdepth 1 -type f -name 'temp*_input' -print -quit)"
+      fi
+      if [[ -n "$preferred_input" ]] && temperature="$(format_temperature "$preferred_input")"; then
+        printf '{"text":"CPU %s","tooltip":"Sensore CPU: %s","class":"normal"}\n' \
+          "$temperature" "$sensor_name"
+        exit 0
+      fi
+      ;;
+  esac
+done
+
+printf '{"text":"CPU n/d","tooltip":"Sensore temperatura CPU non disponibile","class":"unavailable"}\n'

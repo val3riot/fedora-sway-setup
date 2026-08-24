@@ -4,7 +4,6 @@ set -Eeo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
 
-[[ "$PROFILE" == "development" && "$INSTALL_SDKMAN" == true ]] || exit 0
 
 export SDKMAN_DIR="$TOOLS_DIR/sdkman"
 
@@ -41,6 +40,15 @@ install_sdkman() {
 
 install_sdkman
 
+# SDKMAN può chiedere conferma quando installa o cambia la versione predefinita.
+# Il bootstrap deve poter proseguire senza letture implicite dallo standard input.
+sdkman_config="$SDKMAN_DIR/etc/config"
+if grep -q '^sdkman_auto_answer=' "$sdkman_config"; then
+  sed -i 's/^sdkman_auto_answer=.*/sdkman_auto_answer=true/' "$sdkman_config"
+else
+  printf '%s\n' 'sdkman_auto_answer=true' >> "$sdkman_config"
+fi
+
 # SDKMAN utilizza parametri posizionali opzionali come $2.
 # Non è compatibile con `set -u`.
 set +u
@@ -63,10 +71,5 @@ if [[ "$first_java_candidate" != "java" && "$first_java_candidate" != "stable" ]
   sdk default java "$first_java_candidate" || warn "Impossibile impostare Java $first_java_candidate come default."
 fi
 
-if [[ "$SDKMAN_INSTALL_MAVEN" == true ]]; then
-  sdk install maven || warn "Installazione Maven tramite SDKMAN fallita."
-fi
-
-if [[ "$SDKMAN_INSTALL_GRADLE" == true ]]; then
-  sdk install gradle || warn "Installazione Gradle tramite SDKMAN fallita."
-fi
+sdk install maven || warn "Installazione Maven tramite SDKMAN fallita."
+sdk install gradle || warn "Installazione Gradle tramite SDKMAN fallita."

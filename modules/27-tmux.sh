@@ -3,9 +3,8 @@ set -Eeuo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
 
-[[ "$PROFILE" == development ]] || exit 0
 
-sudo -v
+sudo -n true
 install_available_packages tmux
 
 target="$HOME/.tmux.conf"

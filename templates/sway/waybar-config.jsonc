@@ -1,0 +1,46 @@
+// workstation-setup: managed waybar config
+{
+  "layer": "top",
+  "position": "top",
+  "height": 30,
+  "spacing": 6,
+  "modules-left": ["sway/workspaces", "sway/mode"],
+  "modules-center": ["clock"],
+  "modules-right": ["custom/cpu-temperature", "cpu", "memory", "network", "pulseaudio", "battery", "tray"],
+  "sway/workspaces": {
+    "disable-scroll": true,
+    "all-outputs": true
+  },
+  "clock": {
+    "format": "{:%a %d %b  %H:%M}",
+    "tooltip-format": "{calendar}"
+  },
+  "custom/cpu-temperature": {
+    "exec": "$HOME/.local/bin/waybar-cpu-temperature",
+    "return-type": "json",
+    "interval": 5
+  },
+  "cpu": {
+    "format": "CPU {usage}%"
+  },
+  "memory": {
+    "format": "RAM {percentage}%"
+  },
+  "network": {
+    "format-wifi": "Wi-Fi {signalStrength}%",
+    "format-ethernet": "LAN",
+    "format-disconnected": "Offline"
+  },
+  "pulseaudio": {
+    "format": "Vol {volume}%",
+    "format-muted": "Muted",
+    "on-click": "pavucontrol"
+  },
+  "battery": {
+    "format": "Bat {capacity}%",
+    "format-charging": "Bat +{capacity}%"
+  },
+  "tray": {
+    "spacing": 8
+  }
+}
