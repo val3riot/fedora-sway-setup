@@ -20,6 +20,7 @@ install -m 0755 "$ROOT_DIR/bin/workstation-theme" "$HOME/.local/bin/workstation-
 install -m 0755 "$ROOT_DIR/bin/workstation-lock" "$HOME/.local/bin/workstation-lock"
 install -m 0755 "$ROOT_DIR/bin/workstation-network-editor" "$HOME/.local/bin/workstation-network-editor"
 install -m 0755 "$ROOT_DIR/bin/workstation-policykit-agent" "$HOME/.local/bin/workstation-policykit-agent"
+install -m 0755 "$ROOT_DIR/bin/workstation-power-menu" "$HOME/.local/bin/workstation-power-menu"
 install -d "$HOME/.local/share/workstation-setup/themes/dark"
 install -d "$HOME/.local/share/workstation-setup/themes/light"
 install -m 0644 "$ROOT_DIR/templates/themes/dark/"* "$HOME/.local/share/workstation-setup/themes/dark/"

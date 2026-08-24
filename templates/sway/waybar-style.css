@@ -35,6 +35,7 @@ window#waybar { background: @background; }
 #clock:hover,
 #network:hover,
 #pulseaudio:hover,
+#custom-power:hover,
 #tray:hover {
   background-color: alpha(@accent, 0.16);
   border-radius: 6px;
@@ -50,10 +51,24 @@ window#waybar { background: @background; }
   margin: 0 8px;
 }
 
+#custom-power {
+  min-width: 18px;
+  margin: 0 0 0 8px;
+  padding: 0 9px;
+  color: @critical;
+}
+
 #custom-cpu-temperature { color: @warning; }
 #custom-cpu-temperature.unavailable,
 #battery.critical:not(.charging) { color: @critical; }
 #battery.warning { color: @warning; }
 #custom-expand-icon { margin: 0 10px 0 8px; }
 #tray { margin-right: 8px; }
-tooltip { padding: 2px; }
+tooltip {
+  padding: 2px;
+  background: @background;
+  border: 1px solid @accent;
+  border-radius: 10px;
+}
+
+tooltip label { padding: 10px; }
