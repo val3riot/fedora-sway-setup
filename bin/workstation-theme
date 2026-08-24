@@ -48,5 +48,10 @@ fi
 pkill -SIGUSR2 -x waybar 2>/dev/null || true
 pkill -SIGUSR1 -x kitty 2>/dev/null || true
 command -v makoctl >/dev/null 2>&1 && makoctl reload >/dev/null 2>&1 || true
+if pgrep -f '^/usr/libexec/lxqt-policykit-agent$' >/dev/null 2>&1; then
+  pkill -f '^/usr/libexec/lxqt-policykit-agent$' || true
+  command -v swaymsg >/dev/null 2>&1 &&
+    swaymsg exec "$HOME/.local/bin/workstation-policykit-agent" >/dev/null 2>&1 || true
+fi
 command -v notify-send >/dev/null 2>&1 &&
   notify-send 'Tema aggiornato' "$([[ "$requested" == dark ]] && printf 'Tokyo Night' || printf 'Avorio caldo')" || true
