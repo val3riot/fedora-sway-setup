@@ -25,6 +25,7 @@ I profili desktop sono separati e componibili con --development, per esempio:
 
 OPZIONI
   --config-zsh-theme  Installa e configura Starship e i plugin Zsh.
+  --config-quickshell Installa e configura la barra Quickshell opzionale per Sway.
   --set-wallpaper     Sceglie uno sfondo dalla cartella wallpapers/.
   --help, --info, -h  Mostra questa guida.
 
@@ -82,6 +83,7 @@ PROFILE=development
 INCLUDE_DESKTOP_APPS=false
 INCLUDE_SWAY_DESKTOP=false
 CONFIG_ZSH_THEME=false
+CONFIG_QUICKSHELL=false
 RUN_CORE_PROFILE=false
 core_profile_selected=false
 any_profile_selected=false
@@ -108,6 +110,7 @@ while (($#)); do
       INCLUDE_DESKTOP_APPS=true; any_profile_selected=true
       ;;
     --config-zsh-theme) CONFIG_ZSH_THEME=true ;;
+    --config-quickshell) CONFIG_QUICKSHELL=true; any_profile_selected=true ;;
     --set-wallpaper)
       (( $# == 1 )) || die "--set-wallpaper non accetta altri argomenti."
       exec "$ROOT_DIR/bin/set-wallpaper.sh"
@@ -126,7 +129,7 @@ if [[ "$PROFILE" == base &&
   die "--base non è combinabile con i profili desktop; usa --development oppure il solo profilo desktop."
 fi
 
-export ROOT_DIR PROFILE INCLUDE_DESKTOP_APPS INCLUDE_SWAY_DESKTOP CONFIG_ZSH_THEME RUN_CORE_PROFILE
+export ROOT_DIR PROFILE INCLUDE_DESKTOP_APPS INCLUDE_SWAY_DESKTOP CONFIG_ZSH_THEME CONFIG_QUICKSHELL RUN_CORE_PROFILE
 
 log "Controllo sintassi degli script"
 while IFS= read -r -d '' script; do
@@ -148,6 +151,8 @@ for module in "$ROOT_DIR"/modules/*.sh; do
        ( "$module_name" == 26-kitty.sh || "$module_name" == 75-sway-desktop.sh ) ]] &&
       run_standalone_module=true
     [[ "$CONFIG_ZSH_THEME" == true && "$module_name" == 25-zsh-theme.sh ]] &&
+      run_standalone_module=true
+    [[ "$CONFIG_QUICKSHELL" == true && "$module_name" == 76-quickshell.sh ]] &&
       run_standalone_module=true
     [[ "$run_standalone_module" == true ]] || continue
   fi

@@ -68,3 +68,40 @@ repository comunitario e viene dichiarato esplicitamente come fonte di terza par
 segreti tracciati e disabilitazioni TLS/GPG. `bin/provenance-audit.sh` verifica
 proprietario RPM, path degli eseguibili, repository configurati e duplicati nel
 `PATH`.
+
+## Quickshell opzionale — verifica 2026-09-06
+
+Fonti ufficiali consultate: [installazione upstream](https://quickshell.org/docs/v0.2.1/guide/install-setup/)
+e [pacchetto Fedora 44](https://packages.fedoraproject.org/pkgs/quickshell/quickshell/fedora-44.html).
+Gli URL sono centralizzati per i controlli in `config/sources.env`.
+La guida upstream cita ancora Rawhide e propone anche il COPR
+`errornointernet/quickshell`. Quest'ultimo è **upstream-recommended, non Fedora
+official**. Il registro Fedora e `dnf --repo=fedora --repo=updates repoquery`
+confermano però il pacchetto nei repository ufficiali Fedora 44: viene preferito
+questo e non viene aggiunto alcun COPR, fork o installer esterno.
+
+Pacchetto rilevato in updates: `quickshell-0.2.1^git20260209.dacfa9d-5.fc44.x86_64`;
+eseguibile: `quickshell 0.2.1`, revisione
+`dacfa9de829ac7cb173825f593236bf2c21f637e`, distributore Fedora Project.
+Non si blocca una release RPM. Quickshell usa API private Qt: le dipendenze
+RPM non garantiscono da sole la compatibilità tra patch release; il modulo
+verifica anche il loader con `LD_BIND_NOW=1 quickshell --version`. La transazione del modulo 76
+limita **anche le dipendenze** a `fedora` e `updates`. Nessuna deroga TLS/GPG.
+Pacchetti aggiuntivi: `python3-gobject`, `NetworkManager-libnm`, anch'essi Fedora.
+Vendor inatteso o eseguibile che maschera `/usr/bin/quickshell` causano arresto;
+audit e doctor verificano ownership, vendor e integrità `rpm -V` quando selezionato.
+
+Gli adapter distribuiti dal repository leggono esclusivamente dati kernel locali,
+Sway IPC e NetworkManager D-Bus. Nessun endpoint remoto, password, Wi-Fi/VPN control
+o polling di comandi esterni. Audio tramite oggetti nativi PipeWire con tracking.
+Il solo helper power esegue comandi fissi dopo un click esplicito sul menu; la
+modalità `WORKSTATION_QUICKSHELL_TEST=1` impedisce ogni azione, anche chiamando
+l'helper direttamente. Nessun servizio notifiche o policykit Quickshell attivato.
+
+Validazione finale sulla workstation: Quickshell RPM ufficiale installato,
+Qt allineato a 6.11.2 tramite DNF (transazione 22), integrità RPM e librerie
+caricate da /usr/lib64 verificate. Standalone e servizio caricano la
+configurazione reale; il fallback Waybar è stato provato e poi Quickshell
+ripristinato. Doctor Quickshell e suite repository passano. Dettagli del
+mismatch Qt 6.11.1 e delle verifiche in
+`docs/quickshell-qt-abi-2026-09-06.md`.

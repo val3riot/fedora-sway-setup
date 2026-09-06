@@ -309,5 +309,10 @@ Virtualizzazione:
   virsh -c qemu:///system list --all >/dev/null 2>&1 &&     echo 'libvirt: qemu:///system raggiungibile.' ||     echo 'libvirt: qemu:///system non raggiungibile nella sessione corrente.'
 fi
 
+quickshell_failed=0
+"$ROOT_DIR/bin/doctor-quickshell.sh" || quickshell_failed=1
+
 printf '\nAudit provenienza locale:\n'
 "$ROOT_DIR/bin/provenance-audit.sh"
+provenance_failed=$?
+(( quickshell_failed == 0 && provenance_failed == 0 ))

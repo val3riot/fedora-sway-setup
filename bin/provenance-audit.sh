@@ -158,6 +158,18 @@ for repo_check in \
   fi
 done
 
+if [[ -r "$HOME/.config/workstation-setup/bar" &&
+      "$(cat "$HOME/.config/workstation-setup/bar")" == quickshell ]]; then
+  check_rpm_command quickshell quickshell
+  check_fedora_package quickshell
+  check_unique_command quickshell
+  if rpm -V quickshell >/dev/null 2>&1; then
+    ok 'Quickshell RPM integrity' 'rpm -V riuscito'
+  else
+    fail_audit 'Quickshell RPM integrity' 'file RPM modificati o mancanti'
+  fi
+fi
+
 copr_enabled=false
 for repo_file in /etc/yum.repos.d/_copr*.repo; do
   [[ -r "$repo_file" ]] || continue

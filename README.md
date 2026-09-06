@@ -607,3 +607,145 @@ manualmente, tutti o singolarmente:
 Debian e Fedora ricevono 2 vCPU, 4 GiB di RAM e dischi da 40/50 GiB. Windows 11
 riceve 4 vCPU, 8 GiB di RAM, un disco da 80 GiB, UEFI e TPM 2.0 virtuale. Le
 installazioni restano interattive e si completano aprendo `virt-manager`.
+
+## Barra Quickshell opzionale per Sway
+
+Quickshell è un toolkit Qt/QML per componenti desktop. Questa integrazione V1
+sostituisce **solo la barra Waybar**: notifiche, launcher, lock screen, swayidle,
+policykit e gli altri componenti restano quelli della configurazione Sway.
+Non è incluso implicitamente in `--sway-desktop`, `--all` o nei profili GNOME.
+
+```bash
+# Sway già configurato dal setup:
+./install.sh --config-quickshell
+# Prima installazione Sway:
+./install.sh --sway-desktop --config-quickshell
+```
+
+Il flag installa e configura insieme, come `--config-zsh-theme`; da solo non
+esegue il profilo development. Usa `quickshell`, `python3-gobject` e
+`NetworkManager-libnm` esclusivamente dai repository **Fedora official**
+`fedora` e `updates`, con verifiche DNF/GPG normali. Le fonti verificate sono
+centralizzate in `config/sources.env`; vedere anche `AUDIT.md`.
+La guida upstream menziona il COPR `errornointernet/quickshell`: è una fonte
+**upstream-recommended, non Fedora official**, e qui **non viene abilitato**,
+perché il pacchetto è disponibile direttamente in Fedora 44.
+
+La barra, alta 32 px, usa fondo `#111111`, testo `#dddddd`, accent `#e88923`,
+grigi per stati inattivi, giallo per warning e rosso per criticità. Non richiede
+Nerd Fonts. Layout:
+
+```text
+workspace numerici                  CPU  RAM  temperatura  NET  VOL  orologio  ⏻
+```
+
+- Workspace: oggetti nativi `Quickshell.I3`, aggiornamento IPC immediato e click
+  per attivarli; arancione focused, chiaro occupied, grigio empty, rosso urgent.
+  Un piccolo subscriber IPC Python legge l'albero solo su eventi per distinguere
+  workspace realmente vuoti, dato non esposto dal modello nativo. Niente polling
+  `swaymsg`. I workspace esistenti sono filtrati per output; gli slot liberi 1–10
+  sono mostrati sull'output focused. I workspace numerici oltre 10 sono inclusi;
+  quelli senza numero sono fuori dal layout V1.
+- CPU: delta `/proc/stat` fra campioni, escludendo il doppio conteggio guest;
+  primo campione e delta invalidi mostrano `—`. RAM: `MemTotal - MemAvailable`.
+  Temperatura: detection hwmon per driver/label CPU e fallback thermal per tipo,
+  senza indici fissi; se assente, il dato è nascosto. Un solo processo condiviso
+  campiona ogni 2 secondi, con nuova detection sensori ogni 60 secondi.
+- Audio: PipeWire nativo, click apre volume/slider/mute/output; rotella ±5%,
+  click centrale mute. Volume limitato a 100%, uscita assente gestita.
+- Rete: libnm/NetworkManager via D-Bus, solo segnali, senza polling `nmcli`.
+  `NET`/`NET off` indicano la connessione locale (non la raggiungibilità Internet).
+  Popup con Ethernet/Wi-Fi, stato, interfacce, IPv4 e SSID disponibile.
+- Clock nativo al minuto, locale italiano; click apre calendario QML con mese,
+  anno, settimana da lunedì, oggi evidenziato e navigazione mesi.
+- Power: il simbolo apre un menu; serve un secondo click su Lock, Logout,
+  Suspend, Reboot o Shutdown. Lock riusa `~/.local/bin/workstation-lock` se
+  presente, altrimenti lo `swaylock` del template; logout usa `swaymsg exit`,
+  alimentazione usa `systemctl`. I test disabilitano tutte queste azioni.
+
+La configurazione risiede in `~/.config/quickshell/workstation/`: `shell.qml`,
+`Theme.qml`, componenti in `bar/`, `popups/`, servizi in `services/`.
+Viene creata una `PanelWindow` per schermo, senza nomi output fissi, con exclusive
+zone 32 px e layer Top (le finestre fullscreen Sway coprono la barra e gli
+eventuali popup vengono chiusi tramite eventi IPC).
+Le statistiche e i servizi sono condivisi fra monitor. I popup si chiudono con
+Chiudi/Annulla oppure ricliccando il modulo; non c'è chiusura al click esterno.
+Layout pensato per output desktop di almeno circa 900 px logici.
+
+### Attivazione, restart e rollback
+
+La configurazione ha effetto al **prossimo login Sway**. Il setup non riavvia
+la sessione né sostituisce la barra attiva durante l'installazione.
+Il drop-in `~/.config/sway/config.d/90-bar.conf` sostituisce quello Fedora tramite
+`layered-include` e avvia `workstation-bar.service`. Eventuali `exec waybar`
+standard nel file managed vengono disabilitati; il resto viene preservato.
+La scelta persiste in `~/.config/workstation-setup/bar`, anche rieseguendo il
+profilo Sway senza il flag. Una nuova workstation senza flag continua a usare Waybar.
+
+Dopo il primo login con questa configurazione:
+
+```bash
+# Quickshell ricarica automaticamente i QML salvati; restart esplicito:
+~/.local/bin/workstation-bar.sh restart
+journalctl --user -u workstation-bar.service -b
+# Rollback immediato e persistente, senza disinstallare nulla:
+~/.local/bin/workstation-bar.sh waybar
+# Riabilitazione:
+~/.local/bin/workstation-bar.sh quickshell
+```
+
+Il servizio gestisce un solo backend e un lock impedisce avvii duplicati. Se
+Quickshell termina con errore, viene avviata Waybar come fallback; la scelta
+persistente resta Quickshell per consentire un nuovo tentativo con `restart`.
+Waybar e le sue configurazioni non vengono rimosse. Per un ripristino manuale
+completo, fermare il servizio, ripristinare `config.pre-quickshell.bak` e rimuovere
+il solo drop-in managed `90-bar.conf`, poi fare logout/login.
+
+La migrazione rifiuta configurazioni non managed, avvii barra non riconosciuti,
+include personali ambigui o un `90-bar.conf` personale non vuoto, senza modificarli.
+Crea un solo backup Sway. Un manifest di hash protegge i QML modificati a mano:
+un aggiornamento che li sovrascriverebbe viene rifiutato e indica il file da
+riconciliare. Il profilo corrente usa `~/.config`; un `XDG_CONFIG_HOME` alternativo
+viene rifiutato esplicitamente. Gli autostart desktop e i servizi utente abilitati riconoscibili per Waybar o
+Quickshell vengono rifiutati: vanno prima disabilitati. Wrapper esterni arbitrari
+non sono analizzabili automaticamente e devono essere verificati dall’utente.
+
+```bash
+./bin/doctor.sh
+./bin/doctor-quickshell.sh
+python3 bin/test-quickshell-runtime.py
+./bin/test.sh
+```
+
+Quickshell 0.2.1 non espone un comando standalone di validazione QML: il test
+runtime carica il vero entrypoint in uno Sway headless temporaneo, poi prova i
+componenti e tutti i popup su due output. Non usa l'IPC del compositor corrente
+né esegue azioni di alimentazione. Il doctor esegue questo test solo quando la
+feature è selezionata e i prerequisiti sono presenti; verifica anche RPM, file,
+dipendenze, conflitti barra e URL. La suite ordinaria usa fixture per migrazione,
+rollback, CLI e statistiche e non richiede una sessione grafica.
+
+
+Il controllo `bin/check-quickshell-runtime.sh` distingue RPM installato,
+eseguibile disponibile e runtime caricabile. Usa `LD_BIND_NOW=1 quickshell
+--version` con timeout: risolve anche i simboli lazy senza avviare una barra.
+Verifica inoltre path canonici e vendor RPM delle librerie Qt risolte da `ldd`.
+Il modulo Quickshell interrompe la configurazione se questo controllo fallisce.
+
+Su Fedora 44, Quickshell `0.2.1^git20260209.dacfa9d-5.fc44` con Qt
+`6.11.1` può soddisfare le dipendenze RPM ma fallire sul costruttore
+`QUntypedPropertyBinding(QPropertyBindingPrivate*)`: il binario richiede
+`Qt_6`, mentre Qt Core 6.11.1 lo esporta come `Qt_6.11_PRIVATE_API`.
+Qt Core Fedora `6.11.2-2.fc44` esporta la versione richiesta. Prima di
+correggere, confrontare gli RPM installati con i metadata DNF e controllare
+l'environment della shell e di `systemctl --user show-environment`.
+Per questo disallineamento verificato, esaminare la transazione con:
+
+```bash
+sudo dnf --refresh --repo=fedora --repo=updates upgrade --assumeno quickshell 'qt6-*'
+# Se la transazione è coerente, ripetere senza --assumeno.
+```
+
+Non occorre reinstallare Quickshell, modificare QML o eseguire un distro-sync
+globale. Il setup non effettua aggiornamenti globali automatici: il controllo
+preventivo segnala il problema prima di cambiare la configurazione desktop.

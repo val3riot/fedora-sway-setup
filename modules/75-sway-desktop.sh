@@ -24,10 +24,14 @@ for command_name in sway fuzzel waybar swaylock; do
 done
 
 log "Sway: installazione delle configurazioni utente"
+# Preserve the installed Sway architecture during Quickshell upgrades.
+if [[ ! -r "$HOME/.config/sway/config" ]] ||
+   { [[ "${CONFIG_QUICKSHELL:-false}" != true ]] && [[ ! -e "$HOME/.config/workstation-setup/bar" ]]; }; then
 install_managed_config \
   "$ROOT_DIR/templates/sway/config" \
   "$HOME/.config/sway/config" \
   '# workstation-setup: managed sway config'
+fi
 install_managed_config \
   "$ROOT_DIR/templates/sway/waybar-config.jsonc" \
   "$HOME/.config/waybar/config.jsonc" \
