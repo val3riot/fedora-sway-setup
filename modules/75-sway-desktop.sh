@@ -32,6 +32,11 @@ install_managed_config \
   "$HOME/.config/sway/config" \
   '# workstation-setup: managed sway config'
 fi
+# Fedora's layered-include loads user config.d snippets, including this theme.
+install_managed_config \
+  "$ROOT_DIR/templates/sway/config.d/99-theme.conf" \
+  "$HOME/.config/sway/config.d/99-theme.conf" \
+  '# workstation-setup: managed sway window borders'
 install_managed_config \
   "$ROOT_DIR/templates/sway/waybar-config.jsonc" \
   "$HOME/.config/waybar/config.jsonc" \

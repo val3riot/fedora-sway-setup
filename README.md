@@ -230,6 +230,12 @@ di Dash to Dock può essere necessario un logout/login per caricare l'estensione
 
 ## Desktop tiling Sway
 
+Il profilo installa `templates/sway/config.d/99-theme.conf` in
+`~/.config/sway/config.d/99-theme.conf`, caricato dal `layered-include` Fedora.
+Il tema usa bordi da 2 px per finestre normali e floating: arancione `#ff8c00`
+per quella attiva, grigio `#242424` per le inattive e rosso `#ff3b30` per le
+urgenti. Il template principale lascia questi colori al file dedicato.
+
 Il profilo sperimentale installa una sessione Sway affiancata a GNOME usando
 soltanto pacchetti dei repository Fedora. GNOME non viene rimosso e resta
 selezionabile dalla schermata di login:
