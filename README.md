@@ -484,3 +484,38 @@ alterare la clipboard corrente. Le immagini non entrano nello storico.
 Ctrl+V rimane invariato. I binding sono nel drop-in gestito
 `92-desktop-tools.conf`; launcher, clipboard e OSD sono overlay, non finestre
 tiled. Nessun nuovo flag di setup o pacchetto richiesto sulla workstation corrente.
+
+### Desktop UX e Quick Settings
+
+La shell integra Quick Settings, launcher, notifiche, OSD, clipboard, screenshot
+ed utility di sistema floating. Il pulsante **QS** a destra apre un solo pannello
+sul monitor cliccato: stato rete/Bluetooth, volume e mute output/input, CPU/RAM e
+temperatura, Lock, Suspend e collegamento al power menu. I selettori completi
+restano quelli esistenti: la navigazione chiude QS, senza sovrapporre pannelli.
+I toast restano sul layer Overlay sopra QS (Top). Il pannello non prende focus
+esclusivo: Esc lo chiude quando ha focus dopo un'interazione; sono sempre
+disponibili Chiudi e il secondo click su QS. Nessuna azione di sessione nei test.
+
+**Policy tema:** dark, foreground chiaro, superfici scure, accent e bordo focused
+`#e88923`. GTK3 usa Adwaita integrato con prefer-dark, GTK4/libadwaita la preferenza
+standard e accent orange ove supportato; niente CSS globale. Qt usa il plugin
+Fedora `xdgdesktopportal`, che legge il color-scheme del portal e riusa i file
+picker GTK. Non vengono aggiunti runtime Qt o library path.
+Icone/cursore Adwaita, cursore 24 px, UI Adwaita Sans, monospace Cascadia Mono NF
+(anche Kitty e swaylock), tutti già installati. Kitty mantiene i colori ANSI delle
+applicazioni, con fondo scuro e selezione arancione. BlueTUI eredita Kitty.
+Le applicazioni con palette proprie possono ignorare la preferenza o mantenere
+un accent differente; GTK3 non offre l'accent arbitrario senza CSS.
+
+Le app normali, inclusi Kitty, browser, IDE e file manager, restano tiled.
+Sono floating soltanto le utility con identificatori riservati, i dialog Polkit
+già gestiti e il file chooser `xdg-desktop-portal-gtk` (centrato, 800×600).
+L'agente Polkit e i backend portal wlr/GTK restano quelli esistenti.
+`configure-appearance.py` aggiorna solo le chiavi gestite, conserva gli altri
+settings GTK e un solo backup per file; `--check` è diagnostico e non apre UI.
+Le nuove variabili toolkit sono caricate da Fedora start-sway al login e dai
+servizi utente; applicazioni/sessioni già avviate possono richiedere riapertura.
+
+Shortcut principali invariati: Mod+d launcher, Mod+v clipboard,
+Print/Shift+Print/Mod+Print screenshot area/output/finestra, XF86 audio/luminosità
+con OSD. Waybar e gli helper di rollback restano disponibili.

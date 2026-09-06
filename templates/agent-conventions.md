@@ -51,3 +51,8 @@
   `workstation-shell` instrada azioni OSD native; `workstation-screenshot` salva
   e copia PNG. `workstation-lock --check` valida swaylock senza bloccare.
   Non leggere/loggare o versionare clipboard, né introdurre persistenza automatica.
+- Quick Settings: QS sulla barra, istanza globale sul monitor cliccato; compone
+  servizi esistenti, passa ai selector e non duplica backend. Toast Overlay, QS Top.
+- Tema: `bin/configure-appearance.py` gestisce Adwaita + prefer-dark, Qt portal,
+  icone/cursore Adwaita 24px, Adwaita Sans e Cascadia Mono NF. Niente CSS globale
+  né Qt library path. Il chooser portal GTK è una utility floating dedicata.

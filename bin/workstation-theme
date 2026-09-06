@@ -38,7 +38,7 @@ printf '%s\n' "$requested" > "$state_file"
 if command -v gsettings >/dev/null 2>&1; then
   if [[ "$requested" == dark ]]; then
     gsettings set org.gnome.desktop.interface color-scheme prefer-dark
-    gsettings set org.gnome.desktop.interface gtk-theme Adwaita-dark
+    gsettings set org.gnome.desktop.interface gtk-theme Adwaita
   else
     gsettings set org.gnome.desktop.interface color-scheme prefer-light
     gsettings set org.gnome.desktop.interface gtk-theme Adwaita
@@ -54,4 +54,4 @@ if pgrep -f '^/usr/libexec/lxqt-policykit-agent$' >/dev/null 2>&1; then
     swaymsg exec "$HOME/.local/bin/workstation-policykit-agent" >/dev/null 2>&1 || true
 fi
 command -v notify-send >/dev/null 2>&1 &&
-  notify-send 'Tema aggiornato' "$([[ "$requested" == dark ]] && printf 'Tokyo Night' || printf 'Avorio caldo')" || true
+  notify-send 'Tema aggiornato' "$([[ "$requested" == dark ]] && printf 'Scuro · arancione' || printf 'Avorio caldo')" || true

@@ -32,5 +32,7 @@ install -m 0644 "$ROOT_DIR/templates/systemd/workstation-bar.service" "$HOME/.co
 bash "$ROOT_DIR/bin/install-bluetui.sh"
 python3 "$ROOT_DIR/bin/configure-sway-windows.py"
 python3 "$ROOT_DIR/bin/configure-quickshell.py"
+python3 "$ROOT_DIR/bin/configure-appearance.py"
+install -D -m 0644 "$ROOT_DIR/templates/themes/dark/kitty.conf" "$HOME/.config/kitty/theme.conf"
 systemctl --user daemon-reload
 log 'Quickshell configurato. Effetto al prossimo login Sway; rollback: workstation-bar.sh waybar.'

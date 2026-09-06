@@ -88,4 +88,10 @@ if command -v quickshell >/dev/null && [[ "$failed" == 0 ]]; then
 else
   printf 'WARN Quickshell QML: test runtime non eseguibile finché i prerequisiti non sono soddisfatti.\n'
 fi
+python3 "$ROOT_DIR/bin/configure-appearance.py" --check || fail appearance
+if [[ -r "$config/popups/QuickSettings.qml" ]] && grep -Fq 'text: "QS"' "$config/bar/Bar.qml"; then
+  ok 'Quick Settings' 'composizione servizi esistenti'
+else
+  fail 'Quick Settings' 'pannello/entrypoint assente'
+fi
 exit "$failed"

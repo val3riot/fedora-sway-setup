@@ -91,3 +91,6 @@ if [[ "$quickshell_selected" == true ]]; then
 fi
 
 log "Sway, Waybar e integrazione desktop configurati"
+
+# Standard toolkit preferences, shared with the Quickshell desktop.
+python3 "$ROOT_DIR/bin/configure-appearance.py"

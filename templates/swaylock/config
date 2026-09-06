@@ -1,7 +1,7 @@
 # workstation-setup: managed swaylock theme
 color=111111
 scaling=fill
-font=CaskaydiaMono Nerd Font
+font=Cascadia Mono NF
 font-size=20
 indicator-radius=48
 indicator-thickness=3

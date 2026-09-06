@@ -10,8 +10,11 @@ PanelWindow {
     required property var bluetoothService
     required property var audioService
     property string opened: ""
+    signal quickSettingsRequested()
+    signal dismissControls()
+    onOpenedChanged: if (opened !== "") dismissControls()
     readonly property bool fullscreen: systemData.fullscreen[screen.name] || false
-    onFullscreenChanged: if (fullscreen) opened = ""
+    onFullscreenChanged: if (fullscreen) { opened = ""; dismissControls(); }
     function toggle(name) { opened = opened === name ? "" : name; }
     anchors { top: true; left: true; right: true }
     implicitHeight: Theme.barHeight
@@ -31,6 +34,7 @@ PanelWindow {
         BarButton { text: root.audioService.label; onClicked: root.toggle("audio"); onMiddleClicked: root.audioService.mute(); onScrolled: delta => { if (delta !== 0) root.audioService.step(delta > 0 ? 0.05 : -0.05); } }
         BarButton { text: clock.date.toLocaleDateString(Qt.locale("it_IT"), "ddd dd") + " " + clock.date.toLocaleTimeString(Qt.locale("it_IT"), "HH:mm"); onClicked: root.toggle("calendar") }
         Loader { active: root.notificationService !== null; sourceComponent: Notifications { service: root.notificationService; onClicked: root.toggle("notifications") } }
+        BarButton { text: "QS"; onClicked: root.quickSettingsRequested() }
         BarButton { text: "⏻"; onClicked: root.toggle("power") }
     }
     AudioPopup { panel: root; service: root.audioService; visible: !root.fullscreen && root.opened === "audio"; onCloseRequested: root.opened = "" }
