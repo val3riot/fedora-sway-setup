@@ -93,10 +93,10 @@ class Migration(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
         text = self.config.read_text()
         self.assertNotIn('\nexec --no-startup-id waybar\n', text)
-        self.assertIn('exec mako', text)
+        self.assertNotIn('\nexec mako\n', text)
         self.assertIn('workstation-lock', text)
         self.assertEqual(self.config.with_name('config.pre-quickshell.bak').read_text(), self.original)
-        self.assertEqual(len(list(self.home.rglob('*.bak'))), 1)
+        self.assertEqual(len(list(self.home.rglob('*.bak'))), 2)
 
     def test_personal_config_unchanged(self):
         self.config.write_text('exec waybar\n')

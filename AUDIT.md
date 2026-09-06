@@ -91,12 +91,25 @@ Pacchetti aggiuntivi: `python3-gobject`, `NetworkManager-libnm`, anch'essi Fedor
 Vendor inatteso o eseguibile che maschera `/usr/bin/quickshell` causano arresto;
 audit e doctor verificano ownership, vendor e integrità `rpm -V` quando selezionato.
 
-Gli adapter distribuiti dal repository leggono esclusivamente dati kernel locali,
-Sway IPC e NetworkManager D-Bus. Nessun endpoint remoto, password, Wi-Fi/VPN control
-o polling di comandi esterni. Audio tramite oggetti nativi PipeWire con tracking.
+Gli adapter usano dati kernel locali, Sway IPC e NetworkManager D-Bus. Il
+selettore Wi-Fi esegue solo azioni esplicite via libnm (toggle, scan, attivazione).
+Non riceve password: nuove reti protette/nascoste passano al tool NetworkManager.
+Bluetooth usa l'API nativa Quickshell/BlueZ; PIN e conferme sono delegati a un
+BlueTUI ufficiale avviato esplicitamente in Kitty floating. Nessun endpoint remoto o polling di comandi esterni.
+Audio tramite oggetti nativi PipeWire con tracking, default output/input e mute.
+Le API sono state confrontate con i qmltypes dell'RPM installato e la documentazione
+ufficiale versionata; URL in config/sources.env. Il doctor è in sola lettura,
+la modalità test blocca mutazioni reali dei servizi. Forget richiede conferma,
+discovery è temporanea e non altera una sessione preesistente.
 Il solo helper power esegue comandi fissi dopo un click esplicito sul menu; la
 modalità `WORKSTATION_QUICKSHELL_TEST=1` impedisce ogni azione, anche chiamando
-l'helper direttamente. Nessun servizio notifiche o policykit Quickshell attivato.
+l'helper direttamente. NotificationServer Quickshell globale attivo; policykit resta separato.
+Corpo notifiche sanitizzato con subset b/i/u e StyledText, azioni native e immagini locali;
+nessun corpo delle notifiche scritto su disco. Ownership osservata via segnali
+D-Bus. Mako resta installato, con autostart/attivazione disabilitati e rollback
+esplicito tramite workstation-notifications.py. Il comando migra solo il
+proprietario Mako verificato; non termina daemon al login. Bluetooth delega i nuovi
+pairing alla TUI, senza tentativi QML o apertura automatica del manager GUI.
 
 Validazione finale sulla workstation: Quickshell RPM ufficiale installato,
 Qt allineato a 6.11.2 tramite DNF (transazione 22), integrità RPM e librerie
@@ -105,3 +118,32 @@ configurazione reale; il fallback Waybar è stato provato e poi Quickshell
 ripristinato. Doctor Quickshell e suite repository passano. Dettagli del
 mismatch Qt 6.11.1 e delle verifiche in
 `docs/quickshell-qt-abi-2026-09-06.md`.
+
+
+## BlueTUI e utility di sistema — 2026-09-06
+
+BlueTUI 0.8.1: upstream ufficiale https://github.com/pythops/bluetui,
+release v0.8.1 del 2026-01-17; upstream attivo (commit 2026-08-28).
+DNF repoquery limitato a Fedora 44 fedora/updates: nessun pacchetto BlueTUI.
+Classificazione: **official upstream release binary**, non RPM Fedora.
+Asset musl x86_64/aarch64 e SHA-256 pubblicati dal progetto, fissati in
+config/sources.env; installer `bin/install-bluetui.sh`, binario user-local,
+ricevuta digest in ~/.local/share/workstation-setup/bluetui.sha256.
+Il binario x86_64 è static PIE; dipendenza runtime BlueZ D-Bus, terminale Kitty
+Fedora esistente. Nessuna installazione privilegiata, COPR o fork. Nessuna firma
+indipendente rivendicata. Doctor controlla digest, launcher e regole senza lanciare
+TUI, scan o pairing. I file personali non riconosciuti vengono preservati.
+
+L'agente BlueTUI gestisce PIN, passkey e conferma numerica per le proprie
+operazioni (request_default=false). Nessun passcode viene passato a shell,
+environment o log del setup. Il suo refresh D-Bus di un secondo resta confinato
+alla finestra temporanea; nessun polling di comandi nella shell. Nessuna modifica
+a pairing/trusted durante installazione o test automatici. Il manager GUI resta
+manuale. BlueTUI 0.8.1 non espone colori configurabili né un agente generale per
+ogni forma di autorizzazione BlueZ; non viene patchato.
+
+Notifiche: toast Overlay senza keyboard focus; quick settings Top layer-shell.
+Il sanitizer consente solo b/i/u e interruzioni di riga, normalizza heading ed
+entità e non inoltra attributi o URL al renderer. Capability body-markup coerente;
+body-hyperlinks/body-images false. I test isolati controllano pixel, focus e
+fullscreen senza operazioni sui dispositivi reali.

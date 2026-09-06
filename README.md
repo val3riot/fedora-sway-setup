@@ -616,9 +616,9 @@ installazioni restano interattive e si completano aprendo `virt-manager`.
 
 ## Barra Quickshell opzionale per Sway
 
-Quickshell è un toolkit Qt/QML per componenti desktop. Questa integrazione V1
-sostituisce **solo la barra Waybar**: notifiche, launcher, lock screen, swayidle,
-policykit e gli altri componenti restano quelli della configurazione Sway.
+Quickshell è un toolkit Qt/QML per componenti desktop. Questa integrazione
+sostituisce la barra Waybar e gestisce le notifiche tramite il server nativo.
+Launcher, lock screen, swayidle e policykit restano quelli della configurazione Sway.
 Non è incluso implicitamente in `--sway-desktop`, `--all` o nei profili GNOME.
 
 ```bash
@@ -657,11 +657,14 @@ workspace numerici                  CPU  RAM  temperatura  NET  VOL  orologio  �
   Temperatura: detection hwmon per driver/label CPU e fallback thermal per tipo,
   senza indici fissi; se assente, il dato è nascosto. Un solo processo condiviso
   campiona ogni 2 secondi, con nuova detection sensori ogni 60 secondi.
-- Audio: PipeWire nativo, click apre volume/slider/mute/output; rotella ±5%,
-  click centrale mute. Volume limitato a 100%, uscita assente gestita.
-- Rete: libnm/NetworkManager via D-Bus, solo segnali, senza polling `nmcli`.
-  `NET`/`NET off` indicano la connessione locale (non la raggiungibilità Internet).
-  Popup con Ethernet/Wi-Fi, stato, interfacce, IPv4 e SSID disponibile.
+- Audio: PipeWire nativo, selettori Output e Input, slider e mute separati;
+  rotella barra ±5%, click centrale mute output. Volume limitato a 100%,
+  default assenti e hotplug gestiti.
+- Rete: libnm/NetworkManager via D-Bus, segnali e comandi asincroni espliciti,
+  senza polling `nmcli`. `ETH`/`WIFI`/`NET off` indicano la connessione locale.
+  Popup Ethernet con stato e IPv4; selettore Wi-Fi solo se esiste hardware.
+- Bluetooth: widget `BT` solo con adapter disponibile. Stato attenuato se spento,
+  accent con device connessi; popup nativo BlueZ con toggle, discovery e device.
 - Clock nativo al minuto, locale italiano; click apre calendario QML con mese,
   anno, settimana da lunedì, oggi evidenziato e navigazione mesi.
 - Power: il simbolo apre un menu; serve un secondo click su Lock, Logout,
@@ -755,3 +758,175 @@ sudo dnf --refresh --repo=fedora --repo=updates upgrade --assumeno quickshell 'q
 Non occorre reinstallare Quickshell, modificare QML o eseguire un distro-sync
 globale. Il setup non effettua aggiornamenti globali automatici: il controllo
 preventivo segnala il problema prima di cambiare la configurazione desktop.
+
+
+### Selettori Wi-Fi, Bluetooth e audio
+
+Il servizio libnm rileva soltanto dispositivi wireless reali. Senza Wi-Fi la
+sezione scompare, senza placeholder o scansioni; Ethernet resta disponibile.
+Gli AP vengono aggiornati da segnali, deduplicati per SSID originale e ordinati
+con la rete connessa prima, poi per segnale decrescente. Per SSID duplicati si
+mostra il segnale migliore, mantenendo il riferimento alla connessione corrente;
+SSID nascosti restano distinti. Sono gestiti più adapter e AP rimossi.
+
+Il toggle usa la proprietà D-Bus `WirelessEnabled`; la scansione esplicita usa
+`request_scan_async`, limitata a una richiesta ogni 15 secondi per adapter.
+Le reti salvate compatibili vengono attivate direttamente; NetworkManager
+completa i profili delle reti aperte. Per nuove reti protette o nascoste si apre
+`nm-connection-editor --create --type=802-11-wireless`: SSID, sicurezza e password
+si inseriscono nel tool di sistema. Il popup non implementa un Secret Agent:
+**nessuna password entra in QML, JSON, log, argomenti, environment o file temporanei**.
+Per i profili salvati NetworkManager e il suo agent esistente gestiscono i segreti.
+Il canale stdin del servizio accetta solo comandi con campi esplicitamente ammessi;
+gli errori mostrati sono messaggi fissi, senza riversare eccezioni D-Bus o input.
+
+Bluetooth usa `Quickshell.Bluetooth` 0.2.1 e BlueZ, senza `bluetoothctl` runtime.
+Supporta adapter multipli, Enabled/Disabled/Enabling/Disabling/Blocked, elenco
+connessi/associati/disponibili, connect/disconnect tramite `connected`, e batteria
+solo quando `batteryAvailable` è vero (valore 0–1 convertito in percentuale).
+`trusted` non viene modificato. Nessun MAC nella UI principale.
+
+La ricerca è esplicita, dura al massimo 30 secondi e termina alla chiusura del
+popup che l'ha avviata. Una discovery preesistente non viene acquisita o fermata.
+La rimozione (`forget`) richiede una conferma nel popup. **Associa** sui dispositivi
+nuovi e **Associa / Gestisci · BlueTUI** aprono direttamente la TUI in una Kitty
+floating. Nessun tentativo `pair()` QML seguito da un manager grafico. Il click BT,
+toggle, ricerca e connect/disconnect restano interni. BlueTUI gestisce le challenge
+PIN/passkey/conferma numerica per i pairing avviati dalla TUI. Il suo agente non
+sostituisce l'agente predefinito della sessione. Non automatizziamo trusted.
+Quickshell 0.2.1 non espone errori dettagliati per tutte le operazioni: stato e
+timeout segnalano un esito generico, senza retry. Blueman rimane disponibile
+manualmente con `blueman-manager`; non viene avviato dal popup.
+
+L'audio rimane responsabilità PipeWire, anche per cuffie Bluetooth. I nodi sono
+filtrati per `audio`, `isStream`, `isSink` e `media.class` Audio/Sink o Audio/Source;
+monitor e nodi virtuali vengono esclusi. `PwObjectTracker` associa i candidati
+prima di leggere proprietà, volumi e mute. I selettori impostano
+`preferredDefaultAudioSink` e `preferredDefaultAudioSource`; check, slider e mute
+seguono i default effettivi. Un timeout segnala preferenze non applicate.
+Non sono gestiti cambi di profilo hardware (es. A2DP/HFP): solo sink/source
+che WirePlumber espone già nel graph. I popup hanno liste scrollabili limitate
+in altezza. Nessun polling runtime di nmcli, bluetoothctl, wpctl, pactl o pw-cli.
+
+Il doctor legge lo stato senza modificare radio, routing o device: Wi-Fi e
+Bluetooth assenti sono opzionali, mentre hardware Bluetooth presente con BlueZ
+irraggiungibile viene segnalato. Il test QML verifica l'API Bluetooth, PipeWire
+ready ed enumerazione sink/source; i test con mock coprono hotplug e fallimenti.
+
+
+## Notifiche native Quickshell
+
+Il profilo Quickshell usa una sola istanza globale di
+`Quickshell.Services.Notifications.NotificationServer`. Il servizio possiede
+`org.freedesktop.Notifications`; un monitor Gio segue `NameOwnerChanged`, senza
+polling o attivazione D-Bus, e segnala un altro daemon senza sostituirlo.
+
+Toast in alto a destra, massimo quattro, sul monitor focused Sway (primo output
+come fallback), senza duplicazione fra monitor. **NOT** nella barra apre il
+centro condiviso e mostra il numero corrente, escludendo le transient. Icone e
+immagini locali sono facoltative. Titolo e azioni restano testo semplice; il corpo
+usa `StyledText` dopo `notifications/Markup.js`: **b**, *i*, u, newline ed entità
+XML/numeriche; h1–h6 diventano grassetto, p/div separano righe. Tag non supportati
+vengono rimossi conservando il testo; script/style e commenti vengono eliminati.
+Attributi scartati, link non attivi, immagini HTML sostituite dall'alt text:
+nessun contenuto remoto. `body-markup` è dichiarato; `body-hyperlinks` e
+`body-images` restano disabilitati. I pulsanti invocano azioni native, non comandi.
+I toast sono layer-shell **Overlay**, con keyboard focus **None**. I quick settings
+sono finestre layer-shell **Top**, come la barra: nessun xdg-popup che possa
+coprire i toast. Le notifiche sono visibili anche sopra utility floating e
+fullscreen, senza sottrarre il focus o duplicarsi su altri monitor.
+Inline reply è presente nell’API ma non è pubblicizzato né implementato.
+
+Timeout applicativo rispettato (millisecondi nel pacchetto Fedora verificato,
+nonostante la documentazione 0.2.1 dica secondi); valore zero senza scadenza.
+Default: low 4 secondi, normal 7 secondi; poi il toast si nasconde e resta nel
+centro. Le critical hanno bordo rosso e restano fino a chiusura esplicita.
+Hover sospende il countdown. Le transient non entrano nel centro e scadono;
+le resident seguono la semantica nativa delle azioni e non vengono chiuse da
+**Pulisci normali**, che preserva anche le critical. La × permette la chiusura
+individuale. Il centro è scrollabile. Notifiche e timestamp sopravvivono al
+reload QML, senza ripetere i vecchi toast; nessuna cronologia viene salvata su
+disco e un riavvio del processo azzera lo store.
+
+La configurazione disabilita l’avvio diretto Mako da Sway, maschera i servizi
+utente Mako/Dunst e sovrascrive l’attivazione D-Bus con un servizio mascherato.
+Mako resta installato. File personali non riconosciuti vengono preservati con
+un errore esplicito. Il setup conserva la scelta di rollback e crea un solo
+backup `config.pre-notifications.bak`. Per migrare una sessione già avviata:
+
+```bash
+~/.local/bin/workstation-notifications.py quickshell
+```
+
+Il comando ferma la barra e l’esatto proprietario Mako del bus, verificato via
+PID/executable, poi avvia Quickshell. Nessun kill di daemon al login. Rollback:
+
+```bash
+~/.local/bin/workstation-notifications.py mako
+# Per tornare alle notifiche native:
+~/.local/bin/workstation-notifications.py quickshell
+```
+
+Il rollback disabilita NotificationServer tramite il launcher, smaschera e
+avvia Mako, ripristina autostart/attivazione. Non esiste fallback notifiche
+automatico: se la barra ricade su Waybar, usare il rollback Mako esplicito.
+Doctor verifica file, migrazione e proprietario del bus senza inviare notifiche.
+
+Test: `bash tests/test-quickshell-notifications.sh` (migrazione e mock),
+`python3 tests/test-notification-protocol.py` (API nativa su bus privato,
+notify-send, azioni, close reasons, sostituzione, reload e collisione),
+`python3 bin/test-quickshell-runtime.py` (QML e popup su due output isolati).
+
+
+### System utility window policy
+
+Applicazioni normali → **tiled**. Utility temporanee di sistema → **floating,
+centrate, dimensione controllata**, senza workspace dedicato, sticky o fullscreen.
+Kitty/tmux e Cliamp normali restano tiled. Il bordo viene dal tema Sway esistente.
+
+`bin/configure-sway-windows.py` installa `62-system-utilities.conf` e il launcher
+`~/.local/bin/workstation-system-tool`. Sono riservati soltanto gli app_id
+`workstation-{bluetooth,audio,network,storage,system-monitor,system-tool}`.
+Nessuna regola generale per Kitty. Il launcher usa `kitty --app-id`, eredita il
+tema/padding/font globali e chiede 860×580 pixel, ridotti sui monitor piccoli.
+Sway rende floating e centra la finestra. Una finestra già aperta viene focalizzata.
+Niente `--hold`: quando la TUI termina, Kitty chiude e il layout tiled rimane intatto.
+
+```bash
+workstation-system-tool bluetooth
+# Convenzione futura, senza implementare altri frontend:
+workstation-system-tool system-tool -- nome-comando argomento
+```
+
+**BlueTUI 0.8.1** è il primo utilizzo. Fedora 44 `fedora`/`updates` non lo
+pubblicano alla verifica del 2026-09-06. Il modulo Quickshell installa il binario
+musl dalla [release ufficiale pythops/bluetui](https://github.com/pythops/bluetui/releases/tag/v0.8.1)
+in `~/.local/bin/bluetui`, senza sudo/COPR/build locali. Versione, URL e digest
+SHA-256 della release sono centralizzati in `config/sources.env`.
+`bash bin/install-bluetui.sh --check` verifica il binario senza eseguirlo;
+l'installazione ripetuta non scarica nuovamente un binario già verificato e
+preserva installazioni personali sconosciute. Il digest garantisce integrità
+rispetto alla release ufficiale, non è una firma indipendente.
+
+Nella TUI: `s` avvia/ferma ricerca, Tab cambia sezione, Invio associa o connette,
+`q` chiude; i comandi disponibili sono riepilogati nella parte inferiore. PIN/passkey e conferma numerica hanno schermate
+native. Non è un agente generale per tutte le richieste di autorizzazione BlueZ:
+non aggiungiamo challenge artigianali né un fallback GUI automatico.
+La configurazione 0.8.1 non espone una palette personalizzabile: si riusa il
+contenitore Kitty tematizzato, senza patch upstream. BlueTUI aggiorna i dati
+via D-Bus ogni secondo **solo mentre la TUI è aperta**; la shell Quickshell resta
+event-driven e non esegue polling con `bluetoothctl` o altri comandi.
+Bluetooth/BlueZ gestisce dispositivi e pairing; PipeWire continua a gestire
+selezione Output/Input, volume e mute, anche per cuffie Bluetooth.
+
+I dispositivi senza nome sono annunci per cui BlueZ non espone ancora un nome.
+Un alias uguale all'indirizzo non nasconde più un `deviceName` valido. Il popup
+mostra **Nome non disponibile** e offre l'indirizzo nei dettagli, senza inventare
+nomi o identificarli dal solo MAC.
+
+Le regole floating personalizzate sono riservate ai tool di sistema (PolicyKit,
+rete, audio, Bluetooth e GNOME Settings). La vecchia regola cliamp viene rimossa;
+il suo launcher avvia o porta in primo piano una normale finestra tiled e non
+usa lo scratchpad. La migrazione `bin/configure-sway-windows.py` è idempotente,
+preserva regole personali non riconosciute e conserva i backup fuori dagli include
+Sway. Non cambia i bordi generali delle finestre.

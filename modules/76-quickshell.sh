@@ -18,7 +18,7 @@ if rpm -q quickshell >/dev/null 2>&1; then
     die 'Quickshell installato da fonte non Fedora: risolvere la provenance prima di continuare.'
 fi
 log 'Quickshell: installazione RPM Fedora official (fedora, updates)'
-sudo dnf --repo=fedora --repo=updates install -y quickshell python3-gobject NetworkManager-libnm
+sudo dnf --repo=fedora --repo=updates install -y quickshell kitty python3-gobject NetworkManager-libnm
 command_exists quickshell || die 'Quickshell non disponibile dopo installazione.'
 [[ "$(rpm -q --qf '%{VENDOR}' quickshell)" == 'Fedora Project' ]] || die 'Vendor Quickshell inatteso.'
 [[ "$(readlink -f "$(command -v quickshell)")" == /usr/bin/quickshell ]] || die 'Quickshell mascherato da eseguibile personale nel PATH.'
@@ -29,6 +29,8 @@ bash "$ROOT_DIR/bin/check-quickshell-runtime.sh" ||
 mkdir -p "$HOME/.local/bin" "$HOME/.config/systemd/user"
 install -m 0755 "$ROOT_DIR/bin/workstation-bar.sh" "$HOME/.local/bin/workstation-bar.sh"
 install -m 0644 "$ROOT_DIR/templates/systemd/workstation-bar.service" "$HOME/.config/systemd/user/workstation-bar.service"
+bash "$ROOT_DIR/bin/install-bluetui.sh"
+python3 "$ROOT_DIR/bin/configure-sway-windows.py"
 python3 "$ROOT_DIR/bin/configure-quickshell.py"
 systemctl --user daemon-reload
 log 'Quickshell configurato. Effetto al prossimo login Sway; rollback: workstation-bar.sh waybar.'

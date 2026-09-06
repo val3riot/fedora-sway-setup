@@ -32,6 +32,8 @@ install_managed_config \
   "$HOME/.config/sway/config" \
   '# workstation-setup: managed sway config'
 fi
+python3 "$ROOT_DIR/bin/configure-sway-windows.py"
+
 # Fedora's layered-include loads user config.d snippets, including this theme.
 install_managed_config \
   "$ROOT_DIR/templates/sway/config.d/99-theme.conf" \

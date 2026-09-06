@@ -1,9 +1,13 @@
 import Quickshell
 import "bar"
-import "services"
+import "services" as Services
+import "notifications"
 ShellRoot {
-    SystemData { id: telemetry }
-    AudioService { id: audio }
+    Services.SystemData { id: telemetry }
+    Services.AudioService { id: audio }
+    Services.BluetoothService { id: bluetooth }
+    Services.Notifications { id: notifications }
+    NotificationToastStack { service: notifications }
     Variants {
         model: Quickshell.screens
         Bar {
@@ -11,6 +15,8 @@ ShellRoot {
             screen: modelData
             systemData: telemetry
             audioService: audio
+            bluetoothService: bluetooth
+            notificationService: notifications
         }
     }
 }

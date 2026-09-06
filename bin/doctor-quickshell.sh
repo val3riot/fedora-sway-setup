@@ -16,9 +16,11 @@ else
   fail provenance 'eseguibile/vendor/integrità RPM non conformi'
 fi
 for file in shell.qml Theme.qml qmldir bar/Bar.qml bar/BarButton.qml bar/Workspaces.qml \
-  bar/SystemStats.qml services/SystemData.qml services/AudioService.qml \
-  services/stats.py services/network.py services/occupancy.py services/power.sh \
-  popups/ActionButton.qml popups/BarPopup.qml popups/AudioPopup.qml popups/NetworkPopup.qml \
+  bar/Notifications.qml notifications/Markup.js notifications/NotificationEntry.qml notifications/NotificationItem.qml notifications/NotificationToastStack.qml \
+  popups/NotificationCenter.qml services/Notifications.qml services/notification-bus.py \
+  bar/SystemStats.qml services/SystemData.qml services/AudioService.qml services/BluetoothService.qml \
+  services/stats.py services/network.py services/wifi.py services/desktop-settings.py services/occupancy.py services/power.sh \
+  popups/BluetoothPopup.qml popups/BluetoothDeviceRow.qml popups/DeviceButton.qml popups/ActionButton.qml popups/BarPopup.qml popups/AudioPopup.qml popups/NetworkPopup.qml \
   popups/CalendarPopup.qml popups/PowerMenu.qml .workstation-managed; do
   [[ -r "$config/$file" ]] && ok config "$file" || fail config "$file"
 done
@@ -41,6 +43,25 @@ for executable in python3 sway systemctl flock swaymsg swaylock waybar; do
 done
 /usr/bin/python3 -c 'import gi; gi.require_version("NM", "1.0"); from gi.repository import NM' &&
   ok libnm || fail libnm
+bash "$ROOT_DIR/bin/install-bluetui.sh" --check || fail BlueTUI 'provenance o installazione non conforme'
+if [[ -x "$HOME/.local/bin/workstation-system-tool" ]] &&
+   cmp -s "$ROOT_DIR/bin/workstation-system-tool" "$HOME/.local/bin/workstation-system-tool" &&
+   cmp -s "$ROOT_DIR/templates/sway/config.d/62-system-utilities.conf" "$HOME/.config/sway/config.d/62-system-utilities.conf"; then
+  ok 'system utilities' 'helper e app_id Sway dedicati; Kitty normale tiled'
+else
+  fail 'system utilities' 'helper/regola assente o modificata'
+fi
+if grep -Fq 'bodyMarkupSupported: true' "$config/services/Notifications.qml" &&
+   grep -Fq 'Text.StyledText' "$config/notifications/NotificationItem.qml" &&
+   grep -Fq 'Markup.normalize(' "$config/notifications/NotificationItem.qml" &&
+   grep -Fq 'WlrLayer.Overlay' "$config/notifications/NotificationToastStack.qml" &&
+   grep -Fq 'WlrLayer.Top' "$config/popups/BarPopup.qml"; then
+  ok 'notification UX' 'body-markup sanitizzato, toast Overlay, popup Top'
+else
+  fail 'notification UX' 'capability, sanitizer o layer incoerenti'
+fi
+/usr/bin/python3 "$ROOT_DIR/bin/workstation-notifications.py" doctor || fail notifications "ownership o migrazione non conformi"
+/usr/bin/python3 "$ROOT_DIR/bin/doctor-quickshell-hardware.py" || fail 'optional hardware'
 if rg -n 'https?://' "$config"; then
   fail URLs 'URL runtime non consentiti'
 else

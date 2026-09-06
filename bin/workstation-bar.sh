@@ -28,6 +28,9 @@ if pgrep -u "$(id -u)" -x waybar >/dev/null; then
   exit 1
 fi
 backend="$(cat "$selection")"
+notification_mode="$HOME/.config/workstation-setup/notifications"
+export WORKSTATION_NOTIFICATIONS=quickshell
+[[ ! -r "$notification_mode" ]] || WORKSTATION_NOTIFICATIONS="$(cat "$notification_mode")"
 if [[ "$backend" == quickshell ]]; then
   # A manual copy of this same config is stopped; other shells are untouched.
   quickshell kill --path "$config" >/dev/null 2>&1 || true

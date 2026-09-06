@@ -5,6 +5,9 @@ Scope {
     id: root
     property var stats: ({cpu: null, ram: null, temperature: null})
     property var network: ({connected: false, state: "Non disponibile", interfaces: []})
+    function networkCommand(action) {
+        if (networkProcess.running) networkProcess.write(JSON.stringify(action) + "\n");
+    }
     property var occupied: ({})
     property var fullscreen: ({})
     Process {
@@ -17,6 +20,7 @@ Scope {
     Timer { id: retryStats; interval: 30000; onTriggered: statsProcess.running = true }
     Process {
         id: networkProcess
+        stdinEnabled: true
         command: ["/usr/bin/python3", Quickshell.shellPath("services/network.py")]
         running: true
         stdout: SplitParser { onRead: line => { root.network = JSON.parse(line); } }

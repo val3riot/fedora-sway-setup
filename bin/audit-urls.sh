@@ -36,7 +36,7 @@ classify_url() {
   local name=$1 url=$2 class
   case "$url" in
     https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/*|https://raw.githubusercontent.com/nvm-sh/nvm/*|\
-    https://github.com/starship/starship/*)
+    https://github.com/starship/starship/*|https://github.com/pythops/bluetui*)
       class='official upstream repository' ;;
     https://get.sdkman.io*|https://repo.anaconda.com/*|https://releases.openai.com/*|\
     https://pkgs.tailscale.com/*|\
@@ -44,7 +44,7 @@ classify_url() {
     https://desktop.docker.com/*|https://packages.microsoft.com/*|https://dbeaver.io/*|\
     https://api.github.com/repos/usebruno/bruno/*|https://data.services.jetbrains.com/*)
       class='official vendor/project source' ;;
-    https://quickshell.org/*)
+    https://quickshell.org/*|https://networkmanager.dev/*|https://specifications.freedesktop.org/*)
       class='official upstream documentation' ;;
     https://packages.fedoraproject.org/*)
       class='Fedora official package registry' ;;

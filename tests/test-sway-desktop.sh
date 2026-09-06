@@ -21,3 +21,4 @@ help_output="$(env WAYLAND_DISPLAY='' PATH=/usr/bin:/bin bash "$ROOT_DIR/bin/swa
 grep -Fq 'Super+G                 Cerca questa guida dei comandi' <<<"$help_output"
 
 printf '%s\n' 'OK   desktop Sway, launcher e guida ricercabile'
+PYTHONDONTWRITEBYTECODE=1 python3 "$ROOT_DIR/tests/test-sway-windows.py"

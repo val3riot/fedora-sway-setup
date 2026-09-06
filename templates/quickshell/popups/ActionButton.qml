@@ -7,6 +7,8 @@ Button {
     implicitWidth: Math.max(32, contentItem.implicitWidth + 20)
     contentItem: Text {
         text: control.text
+        textFormat: Text.PlainText
+        elide: Text.ElideRight
         color: control.down ? Theme.background : Theme.foreground
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter

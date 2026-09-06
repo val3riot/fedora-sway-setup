@@ -48,7 +48,7 @@ def main():
                 displays = [p for p in runtime.glob('wayland-*') if not p.name.endswith('.lock')]
                 env.update(SWAYSOCK=str(socket), I3SOCK=str(socket), WAYLAND_DISPLAY=displays[0].name)
 
-                def launch(seconds):
+                def launch(seconds, expect_exit=False):
                     process = subprocess.Popen([args.quickshell, '--no-color', '--path', str(config)],
                                                env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
                     try:
@@ -60,7 +60,7 @@ def main():
                         output, _ = process.communicate(timeout=5)
                     print(output, end='')
                     bad = any(token in output for token in ('ERROR:', 'WARN scene:', 'TypeError:', 'ReferenceError:', 'Traceback', 'non-bindable', 'Binding loop'))
-                    return alive and 'Configuration Loaded' in output and not bad, output
+                    return (process.returncode == 0 if expect_exit else alive) and 'Configuration Loaded' in output and not bad, output
 
                 valid, _ = launch(4)
                 if not valid:
@@ -73,13 +73,17 @@ import Quickshell
 import Quickshell.I3
 import Quickshell.Services.Pipewire
 import "bar"
-import "services"
+import "services" as Services
+import "notifications" as NotificationUi
 ShellRoot {
     id: root
     property string opened: ""
     property int phase: 0
-    SystemData { id: telemetry }
-    AudioService { id: sound }
+    Services.SystemData { id: telemetry }
+    Services.AudioService { id: sound }
+    Services.BluetoothService { id: bluetooth }
+    Services.Notifications { id: notices; live: false }
+    NotificationUi.NotificationToastStack { id: toastStack; service: notices }
     Variants {
         model: Quickshell.screens
         Bar {
@@ -87,6 +91,8 @@ ShellRoot {
             screen: modelData
             systemData: telemetry
             audioService: sound
+            bluetoothService: bluetooth
+            notificationService: notices
             opened: root.opened
         }
     }
@@ -94,21 +100,29 @@ ShellRoot {
         interval: 1000; repeat: true; running: true
         onTriggered: {
             root.phase++;
+            if (root.phase === 1) notices.receive({id: 101, summary: "Monitor test", body: "Single shared toast",
+                appName: "Test", appIcon: "", image: "", actions: [], urgency: 2, expireTimeout: 0, transient: false});
             if (root.phase === 2) I3.workspaces.values[1].activate();
             if (root.phase === 3) I3.dispatch("workspace number 7");
-            const names = ["audio", "network", "calendar", "power", "", "audio", "calendar", ""];
+            const names = ["audio", "network", "calendar", "power", "bluetooth", "notifications", "calendar", ""];
             root.opened = names[(root.phase - 1) % names.length];
             console.warn("TEST popup " + root.opened);
             if (root.phase === 7) {
                 console.warn("TEST snapshot " + JSON.stringify({
                     screens: Quickshell.screens.length,
+                    toastOutput: toastStack.screen.name, notificationCount: notices.count,
                     workspaces: I3.workspaces.values.map(w => ({number: w.number, output: w.monitor ? w.monitor.name : "", focused: w.focused})),
                     stats: telemetry.stats, network: telemetry.network.state,
-                    pipewire: Pipewire.ready, audio: sound.label
+                    pipewire: Pipewire.ready, audio: sound.label,
+                    outputs: sound.outputs.map(n => sound.name(n)), inputs: sound.inputs.map(n => sound.name(n)),
+                    wifiAvailable: telemetry.network.wifiAvailable === true,
+                    bluetoothAdapters: bluetooth.adapters.length, bluetoothState: bluetooth.state,
+                    bluetoothDevices: bluetooth.devices.length
                 }));
                 if (Quickshell.screens.length !== 2 || I3.workspaces.values.length < 2
                     || !I3.focusedWorkspace || I3.focusedWorkspace.number !== 7
-                    || telemetry.stats.cpu === null || telemetry.stats.ram === null)
+                    || notices.count !== 1 || !toastStack.visible || toastStack.screen.name !== I3.focusedWorkspace.monitor.name
+                    || telemetry.stats.cpu === null || telemetry.stats.ram === null || !Pipewire.ready)
                     console.error("TEST FAILED");
             }
         }
@@ -117,6 +131,13 @@ ShellRoot {
 ''')
                 valid, output = launch(9)
                 if not valid or 'TEST snapshot' not in output or 'TEST FAILED' in output:
+                    return 1
+                fixture = Path(__file__).resolve().parents[1] / 'tests/fixtures/quickshell/selectors.qml'
+                shutil.copyfile(fixture, config / 'shell.qml')
+                shutil.copyfile(fixture.with_name('SelectorTestBars.qml'), config / 'SelectorTestBars.qml')
+                env['WORKSTATION_QUICKSHELL_UI_TEST'] = '1'
+                valid, output = launch(8, expect_exit=True)
+                if not valid or 'TEST selectors OK' not in output:
                     return 1
                 print('OK Quickshell QML, 2 output, Sway IPC, statistiche e popup; power non eseguito')
                 return 0
