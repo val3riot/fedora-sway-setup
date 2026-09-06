@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Sway Help & Keybindings
+Comment=Cerca scorciatoie e comandi del desktop Sway
+Exec=sway-help
+Icon=help-browser
+Terminal=false
+Categories=Utility;

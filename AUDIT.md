@@ -14,7 +14,7 @@ I seguenti componenti sono installati con DNF dai repository Fedora:
 | Plugin Zsh | `zsh-syntax-highlighting`, `zsh-autosuggestions` |
 | Sviluppo | compilatori, strumenti di build, Python, TeX Live medium |
 | Rete | `cifs-utils`, OpenVPN, OpenConnect |
-| Desktop | Thunderbird, LibreOffice, Dash to Dock |
+| Desktop | Thunderbird, LibreOffice, Dash to Dock; Sway, Waybar, Fuzzel e componenti Wayland opzionali |
 | Virtualizzazione | KVM/QEMU, libvirt, virt-manager, Vagrant |
 | Alimentazione | TuneD e supporto `intel_pstate` |
 
@@ -69,3 +69,82 @@ repository comunitario e viene dichiarato esplicitamente come fonte di terza par
 segreti tracciati e disabilitazioni TLS/GPG. `bin/provenance-audit.sh` verifica
 proprietario RPM, path degli eseguibili, repository configurati e duplicati nel
 `PATH`.
+
+## Quickshell opzionale — verifica 2026-09-06
+
+Fonti ufficiali consultate: [installazione upstream](https://quickshell.org/docs/v0.2.1/guide/install-setup/)
+e [pacchetto Fedora 44](https://packages.fedoraproject.org/pkgs/quickshell/quickshell/fedora-44.html).
+Gli URL sono centralizzati per i controlli in `config/sources.env`.
+La guida upstream cita ancora Rawhide e propone anche il COPR
+`errornointernet/quickshell`. Quest'ultimo è **upstream-recommended, non Fedora
+official**. Il registro Fedora e `dnf --repo=fedora --repo=updates repoquery`
+confermano però il pacchetto nei repository ufficiali Fedora 44: viene preferito
+questo e non viene aggiunto alcun COPR, fork o installer esterno.
+
+Pacchetto rilevato in updates: `quickshell-0.2.1^git20260209.dacfa9d-5.fc44.x86_64`;
+eseguibile: `quickshell 0.2.1`, revisione
+`dacfa9de829ac7cb173825f593236bf2c21f637e`, distributore Fedora Project.
+Non si blocca una release RPM. Quickshell usa API private Qt: le dipendenze
+RPM non garantiscono da sole la compatibilità tra patch release; il modulo
+verifica anche il loader con `LD_BIND_NOW=1 quickshell --version`. La transazione del modulo 76
+limita **anche le dipendenze** a `fedora` e `updates`. Nessuna deroga TLS/GPG.
+Pacchetti aggiuntivi: `python3-gobject`, `NetworkManager-libnm`, anch'essi Fedora.
+Vendor inatteso o eseguibile che maschera `/usr/bin/quickshell` causano arresto;
+audit e doctor verificano ownership, vendor e integrità `rpm -V` quando selezionato.
+
+Gli adapter usano dati kernel locali, Sway IPC e NetworkManager D-Bus. Il
+selettore Wi-Fi esegue solo azioni esplicite via libnm (toggle, scan, attivazione).
+Non riceve password: nuove reti protette/nascoste passano al tool NetworkManager.
+Bluetooth usa l'API nativa Quickshell/BlueZ; PIN e conferme sono delegati a un
+BlueTUI ufficiale avviato esplicitamente in Kitty floating. Nessun endpoint remoto o polling di comandi esterni.
+Audio tramite oggetti nativi PipeWire con tracking, default output/input e mute.
+Le API sono state confrontate con i qmltypes dell'RPM installato e la documentazione
+ufficiale versionata; URL in config/sources.env. Il doctor è in sola lettura,
+la modalità test blocca mutazioni reali dei servizi. Forget richiede conferma,
+discovery è temporanea e non altera una sessione preesistente.
+Il solo helper power esegue comandi fissi dopo un click esplicito sul menu; la
+modalità `WORKSTATION_QUICKSHELL_TEST=1` impedisce ogni azione, anche chiamando
+l'helper direttamente. NotificationServer Quickshell globale attivo; policykit resta separato.
+Corpo notifiche sanitizzato con subset b/i/u e StyledText, azioni native e immagini locali;
+nessun corpo delle notifiche scritto su disco. Ownership osservata via segnali
+D-Bus. Mako resta installato, con autostart/attivazione disabilitati e rollback
+esplicito tramite workstation-notifications.py. Il comando migra solo il
+proprietario Mako verificato; non termina daemon al login. Bluetooth delega i nuovi
+pairing alla TUI, senza tentativi QML o apertura automatica del manager GUI.
+
+Validazione finale sulla workstation: Quickshell RPM ufficiale installato,
+Qt allineato a 6.11.2 tramite DNF (transazione 22), integrità RPM e librerie
+caricate da /usr/lib64 verificate. Standalone e servizio caricano la
+configurazione reale; il fallback Waybar è stato provato e poi Quickshell
+ripristinato. Doctor Quickshell e suite repository passano. Dettagli del
+mismatch Qt 6.11.1 e delle verifiche in
+`docs/quickshell-qt-abi-2026-09-06.md`.
+
+
+## BlueTUI e utility di sistema — 2026-09-06
+
+BlueTUI 0.8.1: upstream ufficiale https://github.com/pythops/bluetui,
+release v0.8.1 del 2026-01-17; upstream attivo (commit 2026-08-28).
+DNF repoquery limitato a Fedora 44 fedora/updates: nessun pacchetto BlueTUI.
+Classificazione: **official upstream release binary**, non RPM Fedora.
+Asset musl x86_64/aarch64 e SHA-256 pubblicati dal progetto, fissati in
+config/sources.env (URL) e config/versions.env (versione/digest); installer `bin/install-bluetui.sh`, binario user-local,
+ricevuta digest in ~/.local/share/workstation-setup/bluetui.sha256.
+Il binario x86_64 è static PIE; dipendenza runtime BlueZ D-Bus, terminale Kitty
+Fedora esistente. Nessuna installazione privilegiata, COPR o fork. Nessuna firma
+indipendente rivendicata. Doctor controlla digest, launcher e regole senza lanciare
+TUI, scan o pairing. I file personali non riconosciuti vengono preservati.
+
+L'agente BlueTUI gestisce PIN, passkey e conferma numerica per le proprie
+operazioni (request_default=false). Nessun passcode viene passato a shell,
+environment o log del setup. Il suo refresh D-Bus di un secondo resta confinato
+alla finestra temporanea; nessun polling di comandi nella shell. Nessuna modifica
+a pairing/trusted durante installazione o test automatici. Il manager GUI resta
+manuale. BlueTUI 0.8.1 non espone colori configurabili né un agente generale per
+ogni forma di autorizzazione BlueZ; non viene patchato.
+
+Notifiche: toast Overlay senza keyboard focus; quick settings Top layer-shell.
+Il sanitizer consente solo b/i/u e interruzioni di riga, normalizza heading ed
+entità e non inoltra attributi o URL al renderer. Capability body-markup coerente;
+body-hyperlinks/body-images false. I test isolati controllano pixel, focus e
+fullscreen senza operazioni sui dispositivi reali.

@@ -38,3 +38,11 @@
   un'azione esplicita dell'utente.
 - Identità Git e alias SSH si aggiungono con `bin/add-git-identity.sh`; non
   sostituire OpenSSH di sistema e non inventare configurazioni globali condivise.
+
+- Sway: `sway-help` / Super+G mostra la guida condivisa. Quickshell è un backend
+  opzionale (`--config-quickshell`), con notifiche, selettori rete/audio/Bluetooth
+  e fallback Waybar. Non riattivare Mako quando Quickshell possiede le notifiche.
+- Pairing Bluetooth: BlueTUI ufficiale in `workstation-system-tool bluetooth`;
+  nuovi pairing nella TUI, connect/disconnect nel popup. PipeWire gestisce l'audio.
+- Finestre normali (Kitty/Cliamp incluse) tiled; solo app_id workstation-* riservati
+  alle utility diventano floating. Preservare la policy e i bordi Sway.

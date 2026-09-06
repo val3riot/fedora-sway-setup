@@ -172,6 +172,8 @@ trap 'rm -f "$tmp_context"' EXIT
 - Miniconda: $conda_state
 - VS Code: $(state_command code)
 - LaTeX: $(state_command tex)
+- Quickshell: $(state_command quickshell); backend: $(cat "$HOME/.config/workstation-setup/bar" 2>/dev/null || printf 'non selezionato')
+- BlueTUI: $(state_command bluetui); launcher: $(state_command workstation-system-tool)
 - Kitty: $(state_command kitty)
 - tmux: $(state_command tmux)
 - DBeaver: $(state_command dbeaver)

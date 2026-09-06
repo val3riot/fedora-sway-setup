@@ -24,6 +24,7 @@ COMPONENTI
   --gnome         Installa/aggiorna esclusivamente GNOME e la sua configurazione.
 
 OPZIONI
+  --config-quickshell Installa/configura Quickshell opzionale per Sway.
   --set-wallpaper     Sceglie uno sfondo dalla cartella wallpapers/.
   --help, --info, -h  Mostra questa guida.
 
@@ -70,6 +71,7 @@ INSTALL_APPS=false
 INSTALL_AGENTS=false
 INSTALL_EXTRA=false
 DESKTOP_ENV=none
+CONFIG_QUICKSHELL=false
 profile_selected=false
 
 while (($#)); do
@@ -86,6 +88,7 @@ while (($#)); do
       [[ "$profile_selected" == false ]] || die "Specifica un solo profilo."
       PROFILE=all; INSTALL_BASE=true; INSTALL_DEV=true; INSTALL_APPS=true; INSTALL_AGENTS=true; profile_selected=true
       ;;
+    --config-quickshell) CONFIG_QUICKSHELL=true ;;
     --agent) INSTALL_AGENTS=true ;;
     --extra) INSTALL_EXTRA=true ;;
     --sway)
@@ -106,12 +109,13 @@ while (($#)); do
 done
 
 if [[ "$profile_selected" == false ]]; then
-  [[ "$DESKTOP_ENV" != none || "$INSTALL_EXTRA" == true ]] ||
+  [[ "$DESKTOP_ENV" != none || "$INSTALL_EXTRA" == true || "$INSTALL_AGENTS" == true || "$CONFIG_QUICKSHELL" == true ]] ||
     die "Specifica un profilo o un componente: --base, --dev, --all, --agent, --extra, --sway oppure --gnome."
   PROFILE=components
 fi
 
-export ROOT_DIR PROFILE DESKTOP_ENV
+[[ "$CONFIG_QUICKSHELL" != true || "$DESKTOP_ENV" != gnome ]] || die "Quickshell richiede Sway, non --gnome."
+export ROOT_DIR PROFILE DESKTOP_ENV CONFIG_QUICKSHELL
 
 start_sudo_keepalive
 trap stop_sudo_keepalive EXIT
@@ -138,6 +142,7 @@ module_enabled() {
     65-extra.sh) [[ "$INSTALL_EXTRA" == true ]] ;;
     70-desktop-apps.sh) [[ "$INSTALL_APPS" == true ]] ;;
     75-sway-desktop.sh) [[ "$DESKTOP_ENV" == sway ]] ;;
+    76-quickshell.sh) [[ "$CONFIG_QUICKSHELL" == true ]] ;;
     76-gnome-desktop.sh) [[ "$DESKTOP_ENV" == gnome ]] ;;
     *) die "Modulo senza categoria: $1" ;;
   esac

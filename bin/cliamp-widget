@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# workstation-setup: managed Cliamp launcher
 set -Eeuo pipefail
 
 case "${1:-toggle}" in
@@ -6,7 +7,7 @@ case "${1:-toggle}" in
     if [[ ! -x "$HOME/.local/bin/cliamp" ]]; then
       printf '%s\n' '{"text":"","class":"unavailable"}'
     elif pgrep -u "$(id -u)" -x cliamp >/dev/null; then
-      printf '%s\n' '{"text":"󰎆","tooltip":"Cliamp attivo · clic: mostra/nascondi · destro: chiudi","class":"active"}'
+      printf '%s\n' '{"text":"󰎆","tooltip":"Cliamp attivo · clic: porta in primo piano · destro: chiudi","class":"active"}'
     else
       printf '%s\n' '{"text":"󰎆","tooltip":"Cliamp · clic per avviare","class":"inactive"}'
     fi
@@ -24,17 +25,13 @@ case "${1:-toggle}" in
 esac
 
 cliamp="$HOME/.local/bin/cliamp"
-[[ -x "$cliamp" ]] || { printf 'Cliamp non è installato: esegui ./install.sh --extra\n' >&2; exit 1; }
+[[ -x "$cliamp" ]] || { printf 'Cliamp non è installato in ~/.local/bin/cliamp\n' >&2; exit 1; }
 
 if command -v swaymsg >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
-  scratchpad_state="$(swaymsg -t get_tree -r 2>/dev/null | jq -r \
-    'first(.. | objects | select(.app_id? == "cliamp-widget") | .scratchpad_state) // empty')"
-  if [[ -n "$scratchpad_state" ]]; then
-    if [[ "$scratchpad_state" == none ]]; then
-      swaymsg '[app_id="^cliamp-widget$"] move scratchpad' >/dev/null
-    else
-      swaymsg '[app_id="^cliamp-widget$"] scratchpad show' >/dev/null
-    fi
+  window_id="$(swaymsg -t get_tree -r 2>/dev/null | jq -r \
+    'first(.. | objects | select(.app_id? == "cliamp-widget") | .id) // empty')"
+  if [[ -n "$window_id" ]]; then
+    swaymsg "[con_id=$window_id] focus" >/dev/null
     exit 0
   fi
 fi

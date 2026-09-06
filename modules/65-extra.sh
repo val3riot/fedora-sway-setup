@@ -29,10 +29,7 @@ install_managed_config \
 command_exists update-desktop-database &&
   update-desktop-database "$HOME/.local/share/applications"
 
-install_managed_config \
-  "$ROOT_DIR/templates/extra/cliamp-sway.conf" \
-  "$HOME/.config/sway/config.d/65-cliamp.conf" \
-  '# workstation-setup: managed Cliamp widget rule'
+python3 "$ROOT_DIR/bin/configure-sway-windows.py"
 if command_exists swaymsg && swaymsg -t get_version >/dev/null 2>&1; then
   swaymsg reload >/dev/null
 fi

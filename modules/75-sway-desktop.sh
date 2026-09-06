@@ -3,6 +3,12 @@ set -Eeuo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
 
+# Preserve an already selected Quickshell backend across a normal Sway setup.
+quickshell_selected=false
+if [[ "$(cat "$HOME/.config/workstation-setup/bar" 2>/dev/null || true)" == quickshell ]]; then
+  python3 "$ROOT_DIR/bin/configure-quickshell.py" --check
+  quickshell_selected=true
+fi
 bash "$ROOT_DIR/modules/26-kitty.sh" </dev/null
 
 install_available_packages sway sway-config-fedora waybar fuzzel foot mako swayidle swaylock \
@@ -47,14 +53,11 @@ install_managed_config \
   "$ROOT_DIR/templates/sway/fuzzel.ini" \
   "$HOME/.config/fuzzel/fuzzel.ini" \
   '# workstation-setup: managed Fuzzel config'
+python3 "$ROOT_DIR/bin/configure-sway-windows.py"
 install_managed_config \
-  "$ROOT_DIR/templates/sway/policykit-window.conf" \
-  "$HOME/.config/sway/config.d/60-policykit-window.conf" \
-  '# workstation-setup: managed PolicyKit window rule'
-install_managed_config \
-  "$ROOT_DIR/templates/sway/desktop-app-windows.conf" \
-  "$HOME/.config/sway/config.d/61-desktop-app-windows.conf" \
-  '# workstation-setup: managed desktop app window rules'
+  "$ROOT_DIR/templates/sway/config.d/99-theme.conf" \
+  "$HOME/.config/sway/config.d/99-theme.conf" \
+  '# workstation-setup: managed sway window borders'
 install_managed_config \
   "$ROOT_DIR/templates/sway/waybar-config.jsonc" \
   "$HOME/.config/waybar/config" \
@@ -79,5 +82,11 @@ install_managed_config \
 sudo install -D -m 0644 \
   "$ROOT_DIR/templates/logind-lid.conf" \
   /etc/systemd/logind.conf.d/90-workstation-setup-lid.conf
+
+install -m 0755 "$ROOT_DIR/bin/sway-help" "$HOME/.local/bin/sway-help"
+install -m 0644 "$ROOT_DIR/templates/sway/sway-help.desktop" "$HOME/.local/share/applications/workstation-sway-help.desktop"
+if [[ "$quickshell_selected" == true ]]; then
+  python3 "$ROOT_DIR/bin/configure-quickshell.py"
+fi
 
 log "Sway, Waybar e integrazione desktop configurati"

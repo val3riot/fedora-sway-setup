@@ -1,0 +1,11 @@
+# workstation-setup: managed bar service
+[Unit]
+Description=Workstation Sway bar (Quickshell or Waybar)
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/bash %h/.local/bin/workstation-bar.sh run
+KillMode=control-group
+TimeoutStopSec=5
