@@ -46,3 +46,8 @@
   nuovi pairing nella TUI, connect/disconnect nel popup. PipeWire gestisce l'audio.
 - Finestre normali (Kitty/Cliamp incluse) tiled; solo app_id workstation-* riservati
   alle utility diventano floating. Preservare la policy e i bordi Sway.
+- Quickshell desktop: Mod+d launcher, Mod+v clipboard solo RAM, Mod+Shift+v split
+  verticale; Print/Shift+Print/Mod+Print catturano area/output/finestra.
+  `workstation-shell` instrada azioni OSD native; `workstation-screenshot` salva
+  e copia PNG. `workstation-lock --check` valida swaylock senza bloccare.
+  Non leggere/loggare o versionare clipboard, né introdurre persistenza automatica.

@@ -116,6 +116,11 @@ def main():
     if os.environ.get('XDG_CONFIG_HOME', str(args.home / '.config')) != str(args.home / '.config'):
         raise ValueError('Il profilo Sway corrente usa ~/.config; XDG_CONFIG_HOME alternativo non supportato.')
     config, content, drop, destination, files, notifications, notification_changes = plan(args.home, args.source)
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('desktop_tools', Path(__file__).with_name('configure-desktop-tools.py'))
+    desktop_tools = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(desktop_tools)
+    desktop_changes = desktop_tools.plan(args.home)
     if args.check:
         return
     import hashlib
@@ -136,6 +141,7 @@ def main():
     (destination / '.workstation-managed').write_text(json.dumps(hashes, sort_keys=True, indent=2) + '\n')
     drop.parent.mkdir(parents=True, exist_ok=True)
     drop.write_text(DROPIN)
+    desktop_tools.apply(args.home, desktop_changes)
     notifications.apply(notification_changes)
     config.write_text(content)
     state = args.home / '.config/workstation-setup/bar'

@@ -60,6 +60,22 @@ if grep -Fq 'bodyMarkupSupported: true' "$config/services/Notifications.qml" &&
 else
   fail 'notification UX' 'capability, sanitizer o layer incoerenti'
 fi
+for executable in grim slurp wl-copy wl-paste brightnessctl notify-send; do
+  command -v "$executable" >/dev/null && ok dependency "$executable" || fail dependency "$executable"
+done
+for helper in workstation-shell workstation-screenshot workstation-lock; do
+  if [[ -x "$HOME/.local/bin/$helper" ]] && cmp -s "$ROOT_DIR/bin/$helper" "$HOME/.local/bin/$helper"; then
+    ok 'desktop helper' "$helper"
+  else
+    fail 'desktop helper' "$helper assente/modificato"
+  fi
+done
+if cmp -s "$ROOT_DIR/templates/sway/config.d/92-desktop-tools.conf" "$HOME/.config/sway/config.d/92-desktop-tools.conf"; then
+  ok 'desktop keys' 'launcher, clipboard, screenshot e OSD'
+else
+  fail 'desktop keys' 'drop-in assente/modificato'
+fi
+"$HOME/.local/bin/workstation-lock" --check || fail swaylock 'configurazione non supportata'
 /usr/bin/python3 "$ROOT_DIR/bin/workstation-notifications.py" doctor || fail notifications "ownership o migrazione non conformi"
 /usr/bin/python3 "$ROOT_DIR/bin/doctor-quickshell-hardware.py" || fail 'optional hardware'
 if rg -n 'https?://' "$config"; then

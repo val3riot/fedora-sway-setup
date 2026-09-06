@@ -1,0 +1,34 @@
+# workstation-setup: managed swaylock theme
+color=111111
+scaling=fill
+font=CaskaydiaMono Nerd Font
+font-size=20
+indicator-radius=48
+indicator-thickness=3
+indicator-idle-visible
+show-failed-attempts
+show-keyboard-layout
+inside-color=111111ee
+inside-clear-color=111111ee
+inside-ver-color=111111ee
+inside-wrong-color=111111ee
+inside-caps-lock-color=111111ee
+ring-color=888888
+ring-clear-color=e88923
+ring-ver-color=e88923
+ring-wrong-color=e06c75
+ring-caps-lock-color=e88923
+key-hl-color=e88923
+bs-hl-color=e06c75
+caps-lock-key-hl-color=e88923
+caps-lock-bs-hl-color=e06c75
+separator-color=111111
+line-uses-inside
+text-color=dddddd
+text-clear-color=dddddd
+text-ver-color=dddddd
+text-wrong-color=e06c75
+text-caps-lock-color=e88923
+layout-bg-color=111111ee
+layout-border-color=888888
+layout-text-color=dddddd

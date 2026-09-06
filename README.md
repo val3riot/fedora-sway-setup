@@ -435,3 +435,52 @@ il suo launcher avvia o porta in primo piano una normale finestra tiled e non
 usa lo scratchpad. La migrazione `bin/configure-sway-windows.py` è idempotente,
 preserva regole personali non riconosciute e conserva i backup fuori dagli include
 Sway. Non cambia i bordi generali delle finestre.
+
+
+### OSD, launcher, lock, screenshot e clipboard
+
+La configurazione Quickshell include ora un **OSD** singolo, senza focus, sul
+monitor attivo: volume/mute, microfono e luminosità backlight; si aggiorna sullo
+stesso pannello e scompare dopo 1,6 secondi. Audio tramite il servizio PipeWire
+esistente, brightnessctl solo alla pressione del tasto. Nessun polling aggiunto.
+
+Il **launcher applicazioni** legge le desktop entries standard, filtra quelle
+non avviabili e offre ricerca case-insensitive con ranking, icone, frecce,
+Invio, click ed Esc. Non esegue il testo della ricerca come comando. Il precedente
+`workstation-app-menu` resta disponibile e viene usato se Quickshell è assente.
+
+Il **lock** resta il vero swaylock tramite `workstation-lock`, anche per swayidle
+e before-sleep. Usa il wallpaper Sway gestito, fondo scuro, indicatore compatto,
+accent arancione ed errore rosso. Swaylock stock 1.8.5 non supporta clock/data o
+overlay dim: non sono simulati. `workstation-lock --check` valida le opzioni senza
+bloccare la sessione; nessuna modifica all'autenticazione.
+
+Gli **screenshot** usano grim/slurp e wl-copy: salvataggio in
+`~/Pictures/Screenshots/Screenshot_YYYY-MM-DD_HH-MM-SS.png` (suffisso in caso di
+collisione), copia PNG e breve notifica. Esc annulla l'area senza creare file.
+Output e finestra usano le informazioni reali di Sway, inclusi offset negativi.
+
+La **clipboard** è testuale e solo in memoria: wl-paste --watch alimenta un
+piccolo store della sessione, massimo 100 elementi/2 MiB, 64 KiB per elemento.
+Ricerca sul testo completo, anteprima troncata, frecce/Invio/click, Esc e Pulisci.
+I dati marcati `sensitive`, incluso `x-kde-passwordManagerHint`, sono esclusi.
+Nessun salvataggio su disco né logging; il riavvio di Quickshell azzera la
+cronologia. Segreti non marcati dall'applicazione non sono riconoscibili in modo
+affidabile: non vengono applicate euristiche. Pulisci svuota lo storico senza
+alterare la clipboard corrente. Le immagini non entrano nello storico.
+
+| Tasto | Azione |
+|---|---|
+| Mod+d | Launcher Quickshell |
+| Mod+v | Clipboard history |
+| Mod+Shift+v | Split verticale (spostato da Mod+v) |
+| Print | Screenshot area |
+| Shift+Print | Screenshot output attivo |
+| Mod+Print | Screenshot finestra focused |
+| XF86AudioRaiseVolume / LowerVolume | Volume + OSD |
+| XF86AudioMute / MicMute | Mute output/microfono + OSD |
+| XF86MonBrightnessUp / Down | Backlight + OSD, se disponibile |
+
+Ctrl+V rimane invariato. I binding sono nel drop-in gestito
+`92-desktop-tools.conf`; launcher, clipboard e OSD sono overlay, non finestre
+tiled. Nessun nuovo flag di setup o pacchetto richiesto sulla workstation corrente.

@@ -1,7 +1,42 @@
-#!/usr/bin/env bash
-set -Eeuo pipefail
+#!/usr/bin/env python3
+# workstation-setup: managed swaylock launcher
+"""Use the real swaylock and its supported theme; --check never locks."""
+from pathlib import Path
+import os
+import re
+import subprocess
+import sys
 
-state_file="${XDG_STATE_HOME:-$HOME/.local/state}/workstation-setup/theme"
-[[ -r "$state_file" ]] && read -r theme < "$state_file" || theme=dark
-[[ "$theme" == light ]] && color=f4f0e6 || color=1a1b26
-exec swaylock -f -c "$color"
+
+def command(home):
+    config = home / '.config/swaylock/config'
+    result = ['/usr/bin/swaylock', '-f']
+    result += ['-C', str(config)] if config.is_file() else ['-c', '111111']
+    wallpaper = home / '.local/share/backgrounds/workstation-setup.jpg'
+    if wallpaper.is_file(): result += ['-i', str(wallpaper)]
+    return result
+
+
+def check(home):
+    result = subprocess.run(['/usr/bin/swaylock', '--help'], capture_output=True, text=True)
+    help_text = result.stdout + result.stderr
+    config = home / '.config/swaylock/config'
+    if not config.is_file(): raise ValueError('Configurazione swaylock assente.')
+    for line in config.read_text().splitlines():
+        if not line or line.startswith('#'): continue
+        key, _, value = line.partition('=')
+        if not re.search(r'--' + re.escape(key) + r'(?:\s|$)', help_text):
+            raise ValueError('Opzione swaylock non supportata: ' + key)
+        if 'color' in key and not re.fullmatch(r'[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?', value):
+            raise ValueError('Colore swaylock non valido.')
+    print('OK swaylock: configurazione supportata, nessun lock eseguito')
+
+
+if __name__ == '__main__':
+    if sys.argv[1:] == ['--check']:
+        check(Path.home())
+    elif not sys.argv[1:]:
+        argv = command(Path.home())
+        os.execv(argv[0], argv)
+    else:
+        raise SystemExit('Uso: workstation-lock [--check]')

@@ -18,7 +18,7 @@ if rpm -q quickshell >/dev/null 2>&1; then
     die 'Quickshell installato da fonte non Fedora: risolvere la provenance prima di continuare.'
 fi
 log 'Quickshell: installazione RPM Fedora official (fedora, updates)'
-sudo dnf --repo=fedora --repo=updates install -y quickshell kitty python3-gobject NetworkManager-libnm
+sudo dnf --repo=fedora --repo=updates install -y quickshell kitty python3-gobject NetworkManager-libnm grim slurp wl-clipboard brightnessctl libnotify swaylock
 command_exists quickshell || die 'Quickshell non disponibile dopo installazione.'
 [[ "$(rpm -q --qf '%{VENDOR}' quickshell)" == 'Fedora Project' ]] || die 'Vendor Quickshell inatteso.'
 [[ "$(readlink -f "$(command -v quickshell)")" == /usr/bin/quickshell ]] || die 'Quickshell mascherato da eseguibile personale nel PATH.'
