@@ -7,53 +7,41 @@ source "$ROOT_DIR/lib/common.sh"
 
 show_info() {
   cat <<'INFO'
-Fedora Workstation Setup
+Fedora Sway Setup — Desktop Wayland completo con Sway, Quickshell e GNU Stow
 
 USO
-  ./install.sh [PROFILO] COMPONENTE...
+  ./install.sh [OPZIONI]
 
-PROFILI
-  --base          Sistema essenziale, shell, rete e strumenti di base.
-  --dev           Strumenti di sviluppo indipendenti dal desktop, incluso Docker rootless.
-  --all           Base, sviluppo, applicazioni desktop e agenti CLI.
-
-COMPONENTI
-  --agent         Installa Codex, Claude Code e Copilot CLI.
-  --extra         Installa software ricreativo e non essenziale (attualmente Cliamp).
-  --sway          Installa/aggiorna esclusivamente Sway e la sua configurazione.
-  --gnome         Installa/aggiorna esclusivamente GNOME e la sua configurazione.
+DEFAULT
+  Eseguito senza opzioni, ./install.sh installa e configura l'ambiente desktop
+  completo: Sway, Quickshell, Greetd, Kitty, Zsh, dotfiles GNU Stow, audio PipeWire,
+  Bluetooth, NetworkManager, portali XDG, tema Adwaita e sfondi.
 
 OPZIONI
-  --config-quickshell Installa/configura Quickshell opzionale per Sway.
-  --set-wallpaper     Sceglie uno sfondo dalla cartella wallpapers/.
-  --help, --info, -h  Mostra questa guida.
+  --no-quickshell     Configura Waybar come barra principale invece di Quickshell.
+  --dry-run           Mostra i moduli pianificati senza apportare modifiche al sistema.
+  --doctor            Esegue la diagnostica dello stato desktop al termine dell'installazione.
+  --set-wallpaper     Seleziona uno sfondo dalla cartella wallpapers/.
+  --help, -h          Mostra questa guida.
 
-COMPONENTI PRINCIPALI
-  Dev           Kitty, tmux, SDKMAN, Node/NVM, Miniconda, TeX Live,
-                Docker rootless, VS Code, KVM/libvirt e Vagrant.
-  All           Base, Dev, app desktop e agenti; GNOME/Sway non impliciti.
-
-CONFIGURAZIONE
-  Fonti: config/sources.env; versioni e checksum: config/versions.env
+STRUMENTI OPZIONALI
+  Strumenti di sviluppo (Java, Node, Python, C++), container (Docker), macchine virtuali,
+  agenti AI e applicazioni personali sono gestiti separatamente nel repository:
+  workstation-tools (~/Progetti/personali/workstation-tools).
 
 VERIFICA
-  ./bin/test.sh                 Suite completa del repository.
-  ./bin/doctor.sh               Stato della workstation.
-  ./bin/provenance-audit.sh     Provenienza del software installato.
-  ./bin/audit-urls.sh --online  Fonti e raggiungibilità degli endpoint.
-
-UTILITÀ
-  ./bin/add-git-identity.sh
-  docker-runtime status|rootless|desktop
-  laptop-power-mode status|dev|quiet|normal|full|default
-  install-kitty-terminfo-remote user@host
+  ./bin/doctor.sh     Diagnostica rapida desktop (< 2 secondi).
+  ./bin/test.sh       Suite di test completa del repository.
 INFO
 }
 
 if [[ "${1:-}" == --info || "${1:-}" == --help || "${1:-}" == -h ]]; then
-  (( $# == 1 )) || die "--help/--info non accettano altri argomenti."
   show_info
   exit 0
+fi
+
+if [[ "${1:-}" == --set-wallpaper ]]; then
+  exec "$ROOT_DIR/bin/set-wallpaper.sh"
 fi
 
 [[ ${EUID:-$(id -u)} -ne 0 ]] ||
@@ -64,58 +52,51 @@ command_exists sudo || die "sudo non è installato."
 load_config "$ROOT_DIR"
 validate_config
 
-PROFILE=""
-INSTALL_BASE=false
-INSTALL_DEV=false
-INSTALL_APPS=false
-INSTALL_AGENTS=false
-INSTALL_EXTRA=false
-DESKTOP_ENV=none
-CONFIG_QUICKSHELL=false
-profile_selected=false
+CONFIG_QUICKSHELL=true
+RUN_DOCTOR=false
+DRY_RUN=false
 
 while (($#)); do
   case "$1" in
-    --base)
-      [[ "$profile_selected" == false ]] || die "Specifica un solo profilo."
-      PROFILE=base; INSTALL_BASE=true; profile_selected=true
-      ;;
-    --dev)
-      [[ "$profile_selected" == false ]] || die "Specifica un solo profilo."
-      PROFILE=dev; INSTALL_DEV=true; profile_selected=true
-      ;;
-    --all)
-      [[ "$profile_selected" == false ]] || die "Specifica un solo profilo."
-      PROFILE=all; INSTALL_BASE=true; INSTALL_DEV=true; INSTALL_APPS=true; INSTALL_AGENTS=true; profile_selected=true
-      ;;
-    --config-quickshell) CONFIG_QUICKSHELL=true ;;
-    --agent) INSTALL_AGENTS=true ;;
-    --extra) INSTALL_EXTRA=true ;;
-    --sway)
-      [[ "$DESKTOP_ENV" == none ]] || die "--sway e --gnome sono mutuamente esclusivi."
-      DESKTOP_ENV=sway
-      ;;
-    --gnome)
-      [[ "$DESKTOP_ENV" == none ]] || die "--sway e --gnome sono mutuamente esclusivi."
-      DESKTOP_ENV=gnome
-      ;;
-    --set-wallpaper)
-      (( $# == 1 )) || die "--set-wallpaper non accetta altri argomenti."
-      exec "$ROOT_DIR/bin/set-wallpaper.sh"
-      ;;
+    --no-quickshell) CONFIG_QUICKSHELL=false ;;
+    --dry-run) DRY_RUN=true ;;
+    --doctor) RUN_DOCTOR=true ;;
     *) die "Opzione non valida: $1. Usa --help per l'elenco dei comandi." ;;
   esac
   shift
 done
 
-if [[ "$profile_selected" == false ]]; then
-  [[ "$DESKTOP_ENV" != none || "$INSTALL_EXTRA" == true || "$INSTALL_AGENTS" == true || "$CONFIG_QUICKSHELL" == true ]] ||
-    die "Specifica un profilo o un componente: --base, --dev, --all, --agent, --extra, --sway oppure --gnome."
-  PROFILE=components
+export ROOT_DIR CONFIG_QUICKSHELL
+
+modules=(
+  00-directories.sh
+  10-system-packages.sh
+  15-xdg-user-dirs.sh
+  20-shell.sh
+  25-zsh-theme.sh
+  26-kitty.sh
+  75-sway-desktop.sh
+)
+
+if [[ "$CONFIG_QUICKSHELL" == true ]]; then
+  modules+=(76-quickshell.sh)
 fi
 
-[[ "$CONFIG_QUICKSHELL" != true || "$DESKTOP_ENV" != gnome ]] || die "Quickshell richiede Sway, non --gnome."
-export ROOT_DIR PROFILE DESKTOP_ENV CONFIG_QUICKSHELL
+modules+=(
+  80-git.sh
+  90-power-mode.sh
+  05-agent-context.sh
+)
+
+log "Installazione Fedora Sway Desktop (Quickshell: $CONFIG_QUICKSHELL)"
+
+if [[ "$DRY_RUN" == true ]]; then
+  printf '\nModalità --dry-run: moduli pianificati (%d):\n' "${#modules[@]}"
+  for mod in "${modules[@]}"; do
+    printf '  - %s\n' "$mod"
+  done
+  exit 0
+fi
 
 start_sudo_keepalive
 trap stop_sudo_keepalive EXIT
@@ -125,39 +106,15 @@ while IFS= read -r -d '' script; do
   bash -n "$script" || die "Errore di sintassi in: ${script#"$ROOT_DIR"/}"
 done < <(find "$ROOT_DIR" -type f -name '*.sh' -print0)
 bash -n "$ROOT_DIR/bin/laptop-power-mode"
-bash -n "$ROOT_DIR/bin/docker-runtime"
-
-module_enabled() {
-  case "$1" in
-    00-directories.sh) return 0 ;;
-    05-agent-context.sh) return 1 ;;
-    10-system-packages.sh) [[ "$INSTALL_BASE" == true || "$INSTALL_DEV" == true ]] ;;
-    12-tailscale.sh|15-xdg-user-dirs.sh|20-shell.sh|25-zsh-theme.sh|80-git.sh|90-power-mode.sh)
-      [[ "$INSTALL_BASE" == true ]]
-      ;;
-    26-kitty.sh|27-tmux.sh|30-sdkman.sh|40-node.sh|50-miniconda.sh|55-docker.sh|57-virtualization.sh|60-vscode.sh)
-      [[ "$INSTALL_DEV" == true ]]
-      ;;
-    45-agents.sh) [[ "$INSTALL_AGENTS" == true ]] ;;
-    65-extra.sh) [[ "$INSTALL_EXTRA" == true ]] ;;
-    70-desktop-apps.sh) [[ "$INSTALL_APPS" == true ]] ;;
-    75-sway-desktop.sh) [[ "$DESKTOP_ENV" == sway ]] ;;
-    76-quickshell.sh) [[ "$CONFIG_QUICKSHELL" == true ]] ;;
-    76-gnome-desktop.sh) [[ "$DESKTOP_ENV" == gnome ]] ;;
-    *) die "Modulo senza categoria: $1" ;;
-  esac
-}
+bash -n "$ROOT_DIR/bin/stow-dotfiles"
 
 successful_modules=()
 failed_modules=()
 
-for module in "$ROOT_DIR"/modules/*.sh; do
-  module_name="$(basename "$module")"
-  module_enabled "$module_name" || continue
+for module_name in "${modules[@]}"; do
+  module_path="$ROOT_DIR/modules/$module_name"
   log "Modulo: $module_name"
-  # Dopo l'unico `sudo -v` iniziale il setup è deliberatamente non interattivo.
-  # Un installer che tenta di leggere deve ricevere EOF, mai bloccare il flusso.
-  if bash "$module" </dev/null; then
+  if bash "$module_path" </dev/null; then
     successful_modules+=("$module_name")
   else
     failed_modules+=("$module_name")
@@ -165,27 +122,22 @@ for module in "$ROOT_DIR"/modules/*.sh; do
   fi
 done
 
-log "Aggiornamento finale del contesto macchina per agenti"
-if bash "$ROOT_DIR/modules/05-agent-context.sh" </dev/null; then
-  successful_modules+=("05-agent-context.sh")
-else
-  failed_modules+=("05-agent-context.sh")
-  warn "Aggiornamento del contesto agenti fallito."
-fi
-
-log "Report finale"
+log "Report finale Fedora Sway Setup"
 printf 'SUCCESS (%d)\n' "${#successful_modules[@]}"
-printf '  %s\n' "${successful_modules[@]}"
+for m in "${successful_modules[@]}"; do printf '  ✓ %s\n' "$m"; done
 if ((${#failed_modules[@]})); then
   printf 'FAILED (%d)\n' "${#failed_modules[@]}" >&2
-  printf '  %s\n' "${failed_modules[@]}" >&2
-else
-  printf '%s\n' 'FAILED (0)'
+  for m in "${failed_modules[@]}"; do printf '  ✗ %s\n' "$m" >&2; done
+  exit 1
 fi
 
-printf '%s\n' \
-  "Profilo software: $PROFILE; desktop configurato: $DESKTOP_ENV." \
-  "Riavvia la sessione per applicare shell, gruppi e desktop." \
-  "Verifica con: $ROOT_DIR/bin/doctor.sh"
+printf '\n%s\n' \
+  "Desktop Sway e Quickshell configurati con successo." \
+  "Riavvia la sessione grafica per applicare shell, gruppi e Greetd."
 
-((${#failed_modules[@]} == 0)) || exit 1
+if [[ "$RUN_DOCTOR" == true ]]; then
+  printf '\nEsecuzione doctor desktop:\n'
+  bash "$ROOT_DIR/bin/doctor.sh"
+else
+  printf 'Verifica con: %s\n' "$ROOT_DIR/bin/doctor.sh"
+fi

@@ -158,7 +158,7 @@ class CliAndRollback(unittest.TestCase):
             (root / 'bin').mkdir()
             (root / 'install.sh').write_bytes((ROOT / 'install.sh').read_bytes())
             (root / 'lib/common.sh').write_text("start_sudo_keepalive() { :; }\nstop_sudo_keepalive() { :; }\nrequire_fedora_44() { :; }\nload_config() { :; }\nvalidate_config() { :; }\ncommand_exists() { return 0; }\nlog() { :; }\ndie() { echo \"$*\" >&2; exit 1; }\n")
-            for extra in ['laptop-power-mode', 'docker-runtime']:
+            for extra in ['laptop-power-mode', 'stow-dotfiles']:
                 (root / 'bin' / extra).write_text('#!/bin/bash\n')
             for name in [p.name for p in (ROOT / 'modules').glob('*.sh')]:
                 (root / 'modules' / name).write_text('echo "' + name + ' $CONFIG_QUICKSHELL" >> "$CLI_RECORD"\n')
@@ -170,16 +170,13 @@ class CliAndRollback(unittest.TestCase):
                     capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 return record.read_text()
-            standalone = run(['--config-quickshell'])
-            self.assertIn('76-quickshell.sh true', standalone)
-            self.assertNotIn('75-sway-desktop.sh', standalone)
-            self.assertNotIn('20-shell.sh', standalone)
-            combined = run(['--sway', '--config-quickshell'])
-            self.assertIn('75-sway-desktop.sh true', combined)
-            self.assertIn('76-quickshell.sh true', combined)
-            normal = run(['--sway'])
-            self.assertNotIn('76-quickshell.sh', normal)
-            self.assertIn('75-sway-desktop.sh false', normal)
+            default_run = run([])
+            self.assertIn('76-quickshell.sh true', default_run)
+            self.assertIn('75-sway-desktop.sh', default_run)
+            self.assertIn('20-shell.sh', default_run)
+            no_qs = run(['--no-quickshell'])
+            self.assertNotIn('76-quickshell.sh', no_qs)
+            self.assertIn('75-sway-desktop.sh', no_qs)
 
     def test_fallback_and_rollback(self):
         import socket

@@ -12,7 +12,6 @@ fi
 # Verify dotfiles packages exist
 required_packages=(
   shell
-  tmux
   kitty
   sway
   swaylock
@@ -20,7 +19,6 @@ required_packages=(
   quickshell
   systemd-user
   scripts
-  extra
   desktop-theme
 )
 
@@ -34,15 +32,12 @@ done
 # Verify key dotfiles are present
 test -f "$ROOT_DIR/dotfiles/shell/.zshrc"
 test -f "$ROOT_DIR/dotfiles/shell/.config/starship.toml"
-test -f "$ROOT_DIR/dotfiles/tmux/.tmux.conf"
-test -f "$ROOT_DIR/dotfiles/tmux/.config/tmux/tmux.conf"
 test -f "$ROOT_DIR/dotfiles/kitty/.config/kitty/kitty.conf"
 test -f "$ROOT_DIR/dotfiles/sway/.config/sway/config"
 test -f "$ROOT_DIR/dotfiles/swaylock/.config/swaylock/config"
 test -f "$ROOT_DIR/dotfiles/waybar/.config/waybar/config"
 test -f "$ROOT_DIR/dotfiles/waybar/.config/waybar/style.css"
 test -f "$ROOT_DIR/dotfiles/systemd-user/.config/systemd/user/workstation-bar.service"
-test -f "$ROOT_DIR/dotfiles/extra/.local/share/applications/cliamp.desktop"
 test -f "$ROOT_DIR/dotfiles/desktop-theme/.config/gtk-3.0/settings.ini"
 
 # Check portability: no hardcoded /home/ username paths inside versioned dotfiles
@@ -58,12 +53,11 @@ test_home="$test_tmp/home"
 mkdir -p "$test_home"
 
 # 1. Apply in empty test home
-HOME="$test_home" "$ROOT_DIR/bin/stow-dotfiles" apply shell tmux kitty
+HOME="$test_home" "$ROOT_DIR/bin/stow-dotfiles" apply shell kitty
 
 # Verify symlinks created
 test -L "$test_home/.zshrc"
 test -L "$test_home/.config/starship.toml"
-test -L "$test_home/.tmux.conf"
 test -L "$test_home/.config/kitty/kitty.conf"
 
 # Verify targets point to repository
@@ -71,10 +65,10 @@ test -L "$test_home/.config/kitty/kitty.conf"
 [[ "$(readlink -f "$test_home/.config/kitty/kitty.conf")" == "$ROOT_DIR/dotfiles/kitty/.config/kitty/kitty.conf" ]]
 
 # 2. Check returns 0
-HOME="$test_home" "$ROOT_DIR/bin/stow-dotfiles" check shell tmux kitty >/dev/null
+HOME="$test_home" "$ROOT_DIR/bin/stow-dotfiles" check shell kitty >/dev/null
 
 # 3. Idempotent apply
-HOME="$test_home" "$ROOT_DIR/bin/stow-dotfiles" apply shell tmux kitty >/dev/null
+HOME="$test_home" "$ROOT_DIR/bin/stow-dotfiles" apply shell kitty >/dev/null
 
 # 4. Backup behavior: create conflicting regular file in sway config
 mkdir -p "$test_home/.config/sway"

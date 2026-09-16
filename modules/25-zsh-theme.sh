@@ -7,12 +7,6 @@ load_config "$ROOT_DIR"
 sudo -n true
 install_available_packages zsh git zsh-syntax-highlighting zsh-autosuggestions
 
-if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-  installer="$TOOLS_DIR/tmp/install-oh-my-zsh.sh"
-  download_verified "$OH_MY_ZSH_INSTALL_URL" "$installer" "$OH_MY_ZSH_INSTALL_SHA256"
-  RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh "$installer" --unattended
-fi
-
 config_dir="$HOME/.config/workstation-setup"
 mkdir -p "$config_dir" "$HOME/.config"
 

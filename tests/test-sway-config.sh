@@ -3,15 +3,11 @@ set -Eeuo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
-grep -Fq -- '--sway' "$ROOT_DIR/install.sh"
-grep -Fq -- '--gnome' "$ROOT_DIR/install.sh"
-grep -Fq 'DESKTOP_ENV=sway' "$ROOT_DIR/install.sh"
-grep -Fq 'DESKTOP_ENV=gnome' "$ROOT_DIR/install.sh"
 grep -Fq 'start_sudo_keepalive' "$ROOT_DIR/install.sh"
 grep -Fq 'sudo -n true' "$ROOT_DIR/lib/common.sh"
-grep -Fq 'bash "$module" </dev/null' "$ROOT_DIR/install.sh"
+grep -Fq 'bash "$module_path" </dev/null' "$ROOT_DIR/install.sh"
 grep -Fq 'dnf install -y --skip-unavailable' "$ROOT_DIR/lib/common.sh"
-grep -Fq 'sdkman_auto_answer=true' "$ROOT_DIR/modules/30-sdkman.sh"
+
 grep -Fq 'workstation-setup.jpg' "$ROOT_DIR/dotfiles/sway/.config/sway/config"
 grep -Fq 'wpctl set-volume' "$ROOT_DIR/dotfiles/sway/.config/sway/config"
 grep -Fq 'set $term kitty' "$ROOT_DIR/dotfiles/sway/.config/sway/config"
@@ -60,8 +56,6 @@ grep -Fq 'gaps outer 0' "$ROOT_DIR/dotfiles/sway/.config/sway/config"
 grep -Fq '"height": 30' "$ROOT_DIR/dotfiles/waybar/.config/waybar/config"
 grep -Fq '"format": "󰍛 {usage}%"' "$ROOT_DIR/dotfiles/waybar/.config/waybar/config"
 grep -Fq '"format": "{icon} {capacity}%"' "$ROOT_DIR/dotfiles/waybar/.config/waybar/config"
-grep -Fq '"custom/cliamp"' "$ROOT_DIR/dotfiles/waybar/.config/waybar/config"
-grep -Fq 'on-click-right": "$HOME/.local/bin/cliamp-widget close"' "$ROOT_DIR/dotfiles/waybar/.config/waybar/config"
 grep -Fq 'on-click": "$HOME/.local/bin/workstation-power-profile-menu"' "$ROOT_DIR/dotfiles/waybar/.config/waybar/config"
 grep -Fq "'Dev 60%' 'Risparmio' 'Prestazioni'" "$ROOT_DIR/bin/workstation-power-profile-menu"
 grep -Fq -- '--no-exit-on-keyboard-focus-loss' "$ROOT_DIR/bin/workstation-power-profile-menu"
@@ -82,7 +76,6 @@ grep -Fq 'HandleLidSwitchExternalPower=suspend' "$ROOT_DIR/templates/logind-lid.
 grep -Fq 'HandleLidSwitchDocked=suspend' "$ROOT_DIR/templates/logind-lid.conf"
 grep -Fq '/etc/systemd/logind.conf.d/90-workstation-setup-lid.conf' "$ROOT_DIR/modules/75-sway-desktop.sh"
 test -f "$ROOT_DIR/dotfiles/sway/.config/xdg-desktop-portal/sway-portals.conf"
-grep -Fq 'gnome-shell-extension-dash-to-dock' "$ROOT_DIR/modules/76-gnome-desktop.sh"
 test -x "$ROOT_DIR/bin/waybar-cpu-temperature"
 test -x "$ROOT_DIR/bin/sway-shortcuts"
 test -x "$ROOT_DIR/bin/workstation-app-menu"
@@ -107,7 +100,6 @@ grep -Fq 'Name=Tasti rapidi e scorciatoie da tastiera' "$ROOT_DIR/dotfiles/sway/
 grep -Fq 'GenericName=Tasti e shortcut di Sway' "$ROOT_DIR/dotfiles/sway/.local/share/applications/sway-shortcuts.desktop"
 grep -Fq 'Keywords=scorciatoie;shortcut;tasti;comandi;tastiera;sway;' "$ROOT_DIR/dotfiles/sway/.local/share/applications/sway-shortcuts.desktop"
 grep -Fq 'Exec=/usr/bin/zsh -lc "exec \\$HOME/.local/bin/sway-shortcuts"' "$ROOT_DIR/dotfiles/sway/.local/share/applications/sway-shortcuts.desktop"
-grep -Fq '`Super+D` apre il menu applicazioni' "$ROOT_DIR/README.md"
-grep -Fq 'rimane sempre sotto Waybar' "$ROOT_DIR/README.md"
+grep -Fq 'Super + D' "$ROOT_DIR/README.md"
 
-printf '%s\n' 'OK   configurazione Sway e sudo non interattivo'
+printf '%s\n' 'OK   configurazione Sway e integrazioni desktop'

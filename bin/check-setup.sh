@@ -15,7 +15,7 @@ while IFS= read -r -d '' script; do
   fi
 done < <(find "$ROOT_DIR" -type f -name '*.sh' -print0 | sort -z)
 
-for extra in bin/laptop-power-mode bin/docker-runtime; do
+for extra in bin/laptop-power-mode bin/stow-dotfiles; do
   if bash -n "$ROOT_DIR/$extra"; then
     printf 'OK   %s\n' "$extra"
   else

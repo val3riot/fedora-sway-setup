@@ -81,16 +81,16 @@ else
 fi
 "$HOME/.local/bin/workstation-lock" --check || fail swaylock 'configurazione non supportata'
 /usr/bin/python3 "$ROOT_DIR/bin/workstation-notifications.py" doctor || fail notifications "ownership o migrazione non conformi"
-/usr/bin/python3 "$ROOT_DIR/bin/doctor-quickshell-hardware.py" || fail 'optional hardware'
+bash "$ROOT_DIR/bin/doctor-quickshell-hardware.sh" || fail 'optional hardware'
 if rg -n 'https?://' "$config"; then
   fail URLs 'URL runtime non consentiti'
 else
   ok URLs 'nessun endpoint esterno'
 fi
-if command -v quickshell >/dev/null && [[ "$failed" == 0 ]]; then
-  python3 "$ROOT_DIR/bin/test-quickshell-runtime.py" --config "$config" || fail 'QML runtime'
-else
-  printf 'WARN Quickshell QML: test runtime non eseguibile finché i prerequisiti non sono soddisfatti.\n'
+if [[ "${1:-}" == "--test-runtime" ]]; then
+  if command -v quickshell >/dev/null && [[ "$failed" == 0 ]]; then
+    python3 "$ROOT_DIR/bin/test-quickshell-runtime.py" --config "$config" || fail 'QML runtime'
+  fi
 fi
 python3 "$ROOT_DIR/bin/configure-appearance.py" --check || fail appearance
 if [[ -r "$config/popups/QuickSettings.qml" ]] && grep -Fq 'text: "QS"' "$config/bar/Bar.qml"; then

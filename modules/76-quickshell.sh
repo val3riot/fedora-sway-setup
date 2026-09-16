@@ -33,7 +33,7 @@ bash "$ROOT_DIR/bin/check-quickshell-runtime.sh" ||
   die "Runtime Quickshell/Qt incompatibile. Verificare environment e aggiornamenti Fedora; per allineare i pacchetti: sudo dnf --refresh --repo=fedora --repo=updates upgrade quickshell 'qt6-*'"
 "$ROOT_DIR/bin/stow-dotfiles" apply quickshell systemd-user scripts
 bash "$ROOT_DIR/bin/install-bluetui.sh"
-python3 "$ROOT_DIR/bin/configure-sway-windows.py"
+bash "$ROOT_DIR/bin/configure-sway-windows.sh"
 python3 "$ROOT_DIR/bin/configure-quickshell.py"
 python3 "$ROOT_DIR/bin/configure-appearance.py"
 install -D -m 0644 "$ROOT_DIR/templates/themes/dark/kitty.conf" "$HOME/.config/kitty/theme.conf"

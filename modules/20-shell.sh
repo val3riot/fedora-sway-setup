@@ -21,24 +21,16 @@ fi
 cat > "$env_file" <<ENV
 export TOOLS_DIR="$TOOLS_DIR"
 export PROJECTS_DIR="$PROJECTS_DIR"
-export AGENTS_ROOT="$TOOLS_DIR/Agents"
-export CODEX_HOME="$HOME/.codex"
-export CLAUDE_CONFIG_DIR="\$AGENTS_ROOT/claude"
-export COPILOT_HOME="\$AGENTS_ROOT/copilot"
-export NVM_DIR="$TOOLS_DIR/nvm"
-export SDKMAN_DIR="$TOOLS_DIR/sdkman"
-export VAGRANT_HOME="$TOOLS_DIR/vagrant"
-export VAGRANT_DEFAULT_PROVIDER="libvirt"
 export PATH="\$HOME/.local/bin:\$PATH"
 
 alias ll='ls -alF'
 alias gst='git status'
 alias ..='cd ..'
-alias update-a='sudo dnf upgrade --refresh -y && flatpak update -y'
 
-[[ -s "\$NVM_DIR/nvm.sh" ]] && source "\$NVM_DIR/nvm.sh"
-[[ -s "\$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "\$SDKMAN_DIR/bin/sdkman-init.sh"
-[[ -f "$TOOLS_DIR/miniconda3/etc/profile.d/conda.sh" ]] && source "$TOOLS_DIR/miniconda3/etc/profile.d/conda.sh"
+# Sourcing opzionale per tool installati da workstation-tools
+[[ -s "\$TOOLS_DIR/nvm/nvm.sh" ]] && export NVM_DIR="\$TOOLS_DIR/nvm" && source "\$TOOLS_DIR/nvm/nvm.sh"
+[[ -s "\$TOOLS_DIR/sdkman/bin/sdkman-init.sh" ]] && export SDKMAN_DIR="\$TOOLS_DIR/sdkman" && source "\$TOOLS_DIR/sdkman/bin/sdkman-init.sh"
+[[ -f "\$TOOLS_DIR/miniconda3/etc/profile.d/conda.sh" ]] && source "\$TOOLS_DIR/miniconda3/etc/profile.d/conda.sh"
 ENV
 
 if [[ "$legacy_kitty_ssh_override" == true ]]; then

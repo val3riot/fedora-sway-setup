@@ -10,7 +10,6 @@ TARGET_DIR="${HOME}"
 
 ALL_PACKAGES=(
   shell
-  tmux
   kitty
   sway
   swaylock
@@ -19,7 +18,6 @@ ALL_PACKAGES=(
   desktop-theme
   quickshell
   scripts
-  extra
 )
 
 usage() {

@@ -12,7 +12,7 @@ if [[ "$(cat "$HOME/.config/workstation-setup/bar" 2>/dev/null || true)" == quic
 fi
 bash "$ROOT_DIR/modules/26-kitty.sh" </dev/null
 
-install_available_packages sway sway-config-fedora waybar fuzzel foot mako swayidle swaylock stow \
+install_available_packages sway sway-config-fedora waybar fuzzel mako swayidle swaylock stow \
   grim slurp wl-clipboard brightnessctl playerctl pavucontrol \
   network-manager-applet xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
   lxqt-policykit wireplumber cascadia-mono-nf-fonts greetd gtkgreet greetd-selinux
@@ -31,7 +31,7 @@ if [[ ! -f "$HOME/.local/share/backgrounds/workstation-setup.jpg" ]]; then
   "$ROOT_DIR/bin/workstation-wallpaper" "$ROOT_DIR/wallpapers/mita.jpg"
 fi
 
-python3 "$ROOT_DIR/bin/configure-sway-windows.py"
+bash "$ROOT_DIR/bin/configure-sway-windows.sh"
 
 active_theme="$("$HOME/.local/bin/workstation-theme" current)"
 "$HOME/.local/bin/workstation-theme" "$active_theme"
