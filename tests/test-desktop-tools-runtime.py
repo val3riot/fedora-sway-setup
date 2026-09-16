@@ -19,7 +19,10 @@ def main():
         for name, command in [('Alpha Fixture', '/usr/bin/touch ' + str(work/'launched')),
                               ('Beta Fixture', '/usr/bin/true'), ('Invalid Fixture', 'workstation-does-not-exist')]:
             (apps/(name.replace(' ','-')+'.desktop')).write_text('[Desktop Entry]\nType=Application\nName='+name+'\nExec='+command+'\n')
-        config = work/'config'; shutil.copytree(ROOT/'templates/quickshell',config)
+        qs_src = ROOT / 'dotfiles/quickshell/.config/quickshell/workstation'
+        if not qs_src.exists():
+            qs_src = ROOT / 'templates/quickshell'
+        config = work / 'config'; shutil.copytree(qs_src, config)
         shutil.copyfile(ROOT/'tests/fixtures/quickshell/desktop-tools.qml',config/'shell.qml')
         swayconf = work/'sway.conf'; swayconf.write_text('output * resolution 1280x720\nseat seat0 fallback true\n')
         env = dict(os.environ, HOME=str(home), XDG_RUNTIME_DIR=str(runtime), XDG_DATA_HOME=str(data), XDG_DATA_DIRS=str(data),

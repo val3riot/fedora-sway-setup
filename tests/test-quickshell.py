@@ -9,14 +9,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def module(name, path):
-    spec = importlib.util.spec_from_file_location(name, ROOT / path)
+    file_path = ROOT / path if not Path(path).is_absolute() else Path(path)
+    spec = importlib.util.spec_from_file_location(name, file_path)
     obj = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(obj)
     return obj
 
 
-stats = module('stats', 'templates/quickshell/services/stats.py')
-occupancy = module('occupancy', 'templates/quickshell/services/occupancy.py')
+QS_DIR = ROOT / 'dotfiles/quickshell/.config/quickshell/workstation' if (ROOT / 'dotfiles/quickshell/.config/quickshell/workstation').exists() else ROOT / 'templates/quickshell'
+SWAY_CONF = ROOT / 'dotfiles/sway/.config/sway/config' if (ROOT / 'dotfiles/sway/.config/sway/config').exists() else ROOT / 'templates/sway/config'
+stats = module('stats', QS_DIR / 'services/stats.py')
+occupancy = module('occupancy', QS_DIR / 'services/occupancy.py')
 
 
 class Statistics(unittest.TestCase):
@@ -120,12 +123,12 @@ class Migration(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
 
     def test_current_sway_template_migrates_after_rerun(self):
-        self.config.write_bytes((ROOT / 'templates/sway/config').read_bytes())
+        self.config.write_bytes(SWAY_CONF.read_bytes())
         self.configure()
         first = self.config.read_bytes()
         self.assertNotIn('exec --no-startup-id mako', first.decode())
         self.assertNotIn('exec --no-startup-id waybar', first.decode())
-        self.config.write_bytes((ROOT / 'templates/sway/config').read_bytes())
+        self.config.write_bytes(SWAY_CONF.read_bytes())
         self.configure()
         self.assertEqual(first, self.config.read_bytes())
 

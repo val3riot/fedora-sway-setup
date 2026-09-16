@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# workstation-setup: managed Cliamp launcher
+set -Eeuo pipefail
+
+case "${1:-toggle}" in
+  status)
+    if [[ ! -x "$HOME/.local/bin/cliamp" ]]; then
+      printf '%s\n' '{"text":"","class":"unavailable"}'
+    elif pgrep -u "$(id -u)" -x cliamp >/dev/null; then
+      printf '%s\n' '{"text":"󰎆","tooltip":"Cliamp attivo · clic: porta in primo piano · destro: chiudi","class":"active"}'
+    else
+      printf '%s\n' '{"text":"󰎆","tooltip":"Cliamp · clic per avviare","class":"inactive"}'
+    fi
+    exit 0
+    ;;
+  close)
+    if command -v swaymsg >/dev/null 2>&1; then
+      swaymsg '[app_id="^cliamp-widget$"] kill' >/dev/null 2>&1 || true
+    fi
+    pkill -TERM -u "$(id -u)" -x cliamp >/dev/null 2>&1 || true
+    exit 0
+    ;;
+  toggle) ;;
+  *) printf 'Uso: %s [toggle|close|status]\n' "$0" >&2; exit 2 ;;
+esac
+
+cliamp="$HOME/.local/bin/cliamp"
+[[ -x "$cliamp" ]] || { printf 'Cliamp non è installato in ~/.local/bin/cliamp\n' >&2; exit 1; }
+
+if command -v swaymsg >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+  window_id="$(swaymsg -t get_tree -r 2>/dev/null | jq -r \
+    'first(.. | objects | select(.app_id? == "cliamp-widget") | .id) // empty')"
+  if [[ -n "$window_id" ]]; then
+    swaymsg "[con_id=$window_id] focus" >/dev/null
+    exit 0
+  fi
+fi
+
+if command -v kitty >/dev/null 2>&1; then
+  exec kitty --class cliamp-widget --title Cliamp "$cliamp"
+elif command -v xdg-terminal-exec >/dev/null 2>&1; then
+  exec xdg-terminal-exec "$cliamp"
+else
+  printf 'Nessun terminale compatibile disponibile.\n' >&2
+  exit 1
+fi

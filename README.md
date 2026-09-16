@@ -83,6 +83,63 @@ Un modulo fallito, incluso un download con checksum non valido, viene interrotto
 senza eseguire il file non verificato; gli altri moduli continuano. Al termine il
 setup stampa il report `SUCCESS/FAILED` e restituisce codice 1 se ci sono errori.
 
+## Gestione Dotfile (GNU Stow)
+
+I dotfile utente gestiti dal repository vengono collegati direttamente in `$HOME`
+tramite **GNU Stow** anziché essere copiati da template statici. I file in `$HOME`
+sono symlink simbolici che puntano direttamente alla cartella `dotfiles/` del repository Git:
+
+```text
+repository Git (dotfiles/<package>/...)
+    ↓
+GNU Stow
+    ↓
+~/.config/...
+~/.zshrc
+~/.local/...
+```
+
+Modificando direttamente un file sotto `$HOME` (es. `~/.config/sway/config` o `~/.config/kitty/kitty.conf`),
+la modifica viene riflessa immediatamente nel file versionato in Git.
+
+### Comandi disponibili
+
+Lo strumento `bin/stow-dotfiles` permette di gestire il ciclo di vita dei dotfile:
+
+```bash
+# Applica tutti i pacchetti (o aggiorna i symlink esistenti)
+./bin/stow-dotfiles apply
+
+# Applica pacchetti specifici
+./bin/stow-dotfiles apply shell kitty tmux
+
+# Verifica l'integrità dei symlink (sola lettura)
+./bin/stow-dotfiles check
+
+# Rimuove (unstow) i pacchetti dal target
+./bin/stow-dotfiles remove kitty
+```
+
+### Pacchetti gestiti in `dotfiles/`
+
+- `shell`: `~/.zshrc`, `~/.config/starship.toml`, `~/.config/workstation-setup/zsh-theme.zsh`
+- `tmux`: `~/.tmux.conf`, `~/.config/tmux/tmux.conf`
+- `kitty`: `~/.config/kitty/kitty.conf`
+- `sway`: `~/.config/sway/config`, regole `config.d/`, environment e shortcut
+- `swaylock`: `~/.config/swaylock/config`
+- `waybar`: `~/.config/waybar/config`, `~/.config/waybar/style.css`
+- `quickshell`: `~/.config/quickshell/workstation/...`
+- `systemd-user`: `~/.config/systemd/user/workstation-bar.service`
+- `desktop-theme`: `~/.config/gtk-3.0/settings.ini`, `gtk-4.0/settings.ini`, fontconfig, environment
+- `scripts`: script helper in `~/.local/bin/`
+- `extra`: integrazioni desktop opzionali (`cliamp.desktop`)
+
+I file mutabili o rigenerati dinamicamente dal tema (`theme.conf`, `theme.css`, `fuzzel.ini`, `90-bar.conf`, `95-notifications.conf`) restano gestiti a runtime e non vengono forzati nel versionamento Git.
+
+### Migrazione e backup non distruttivi
+
+Se nella `$HOME` è presente un file regolare non-symlink (es. da una precedente installazione basata su copia), `stow-dotfiles apply` esegue automaticamente un backup preventivo in `~/.local/state/fedora-workstation-setup/stow-migration/<timestamp>/` con relativo `MIGRATION_MANIFEST.txt` prima di creare il symlink.
+
 ## Creazione delle VM
 
 Dopo `./install.sh --dev`, ogni guest può essere creato da una ISO locale senza

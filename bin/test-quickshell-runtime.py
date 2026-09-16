@@ -10,8 +10,12 @@ import time
 
 
 def main():
+    repo_root = Path(__file__).resolve().parents[1]
+    default_cfg = repo_root / 'dotfiles/quickshell/.config/quickshell/workstation'
+    if not default_cfg.exists():
+        default_cfg = repo_root / 'templates/quickshell'
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=Path, default=Path(__file__).resolve().parents[1] / 'templates/quickshell')
+    parser.add_argument('--config', type=Path, default=default_cfg)
     parser.add_argument('--quickshell', default='quickshell')
     args = parser.parse_args()
     for executable in (args.quickshell, 'sway', 'swaymsg'):

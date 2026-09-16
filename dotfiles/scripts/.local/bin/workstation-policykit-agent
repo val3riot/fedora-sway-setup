@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+state_file="${XDG_STATE_HOME:-$HOME/.local/state}/workstation-setup/theme"
+[[ -r "$state_file" ]] && read -r theme < "$state_file" || theme=dark
+
+if [[ "$theme" == light ]]; then
+  gtk_theme=Adwaita:light
+else
+  gtk_theme=Adwaita:dark
+fi
+
+exec env \
+  GTK_THEME="$gtk_theme" \
+  QT_QPA_PLATFORMTHEME=gtk3 \
+  /usr/libexec/lxqt-policykit-agent "$@"

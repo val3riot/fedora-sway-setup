@@ -9,12 +9,7 @@ if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
   RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh "$installer" --unattended
 fi
 
-if [[ ! -f "$HOME/.zshrc" ]]; then
-  cp "$ROOT_DIR/templates/zshrc" "$HOME/.zshrc"
-else
-  append_line_once '# workstation-setup: personal development environment' "$HOME/.zshrc"
-  append_line_once '[[ -f "$HOME/.config/workstation-setup/env.zsh" ]] && source "$HOME/.config/workstation-setup/env.zsh"' "$HOME/.zshrc"
-fi
+"$ROOT_DIR/bin/stow-dotfiles" apply shell
 
 mkdir -p "$HOME/.config/workstation-setup"
 env_file="$HOME/.config/workstation-setup/env.zsh"

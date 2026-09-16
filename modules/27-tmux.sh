@@ -7,6 +7,5 @@ load_config "$ROOT_DIR"
 sudo -n true
 install_available_packages tmux
 
-target="$HOME/.tmux.conf"
-install_managed_config "$ROOT_DIR/templates/tmux.conf" "$target" '# workstation-setup: managed tmux config'
-log "tmux configurato in $target (reload: prefix + r)"
+"$ROOT_DIR/bin/stow-dotfiles" apply tmux
+log "tmux configurato tramite GNU Stow (reload: prefix + r)"

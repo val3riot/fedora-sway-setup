@@ -7,7 +7,12 @@ load_config "$ROOT_DIR"
 log 'Quickshell: verifica migrazione Sway prima di modificare file o pacchetti'
 python3 "$ROOT_DIR/bin/configure-quickshell.py" --check
 for target in "$HOME/.local/bin/workstation-bar.sh" "$HOME/.config/systemd/user/workstation-bar.service"; do
-  if [[ -L "$target" ]] || { [[ -e "$target" ]] && ! grep -Fq '# workstation-setup: managed bar' "$target"; }; then
+  if [[ -L "$target" ]]; then
+    target_resolved="$(readlink -f "$target" 2>/dev/null || true)"
+    if [[ "$target_resolved" != *"dotfiles"* ]]; then
+      die "Helper/servizio personale da preservare: $target"
+    fi
+  elif [[ -e "$target" ]] && ! grep -Fq '# workstation-setup: managed bar' "$target"; then
     die "Helper/servizio personale da preservare: $target"
   fi
 done
@@ -26,9 +31,7 @@ command_exists quickshell || die 'Quickshell non disponibile dopo installazione.
 # Stop before changing the desktop if an installed runtime is incompatible.
 bash "$ROOT_DIR/bin/check-quickshell-runtime.sh" ||
   die "Runtime Quickshell/Qt incompatibile. Verificare environment e aggiornamenti Fedora; per allineare i pacchetti: sudo dnf --refresh --repo=fedora --repo=updates upgrade quickshell 'qt6-*'"
-mkdir -p "$HOME/.local/bin" "$HOME/.config/systemd/user"
-install -m 0755 "$ROOT_DIR/bin/workstation-bar.sh" "$HOME/.local/bin/workstation-bar.sh"
-install -m 0644 "$ROOT_DIR/templates/systemd/workstation-bar.service" "$HOME/.config/systemd/user/workstation-bar.service"
+"$ROOT_DIR/bin/stow-dotfiles" apply quickshell systemd-user scripts
 bash "$ROOT_DIR/bin/install-bluetui.sh"
 python3 "$ROOT_DIR/bin/configure-sway-windows.py"
 python3 "$ROOT_DIR/bin/configure-quickshell.py"

@@ -30,40 +30,6 @@ if [[ -z "$starship_path" || "$starship_path" == "$HOME/.local/bin/starship" ]] 
   rm -r -- "$extract_dir"
 fi
 
-install -m 0644 "$ROOT_DIR/templates/starship.toml" "$HOME/.config/starship.toml"
-install -m 0644 "$ROOT_DIR/templates/zsh-theme.zsh" "$config_dir/zsh-theme.zsh"
+"$ROOT_DIR/bin/stow-dotfiles" apply shell
 
-zshrc="$HOME/.zshrc"
-touch "$zshrc"
-begin='# >>> workstation-setup zsh theme >>>'
-end='# <<< workstation-setup zsh theme <<<'
-
-# Conserva il primo originale prima di una modifica gestita significativa.
-[[ -e "$zshrc.workstation-setup.bak" ]] || cp -p "$zshrc" "$zshrc.workstation-setup.bak"
-
-begin_count="$(grep -Fc "$begin" "$zshrc" || true)"
-end_count="$(grep -Fc "$end" "$zshrc" || true)"
-[[ "$begin_count" == "$end_count" ]] ||
-  die "Blocco tema incompleto in $zshrc: ripristinalo prima di continuare (backup: $zshrc.workstation-setup.bak)."
-
-cleaned="$(mktemp)"
-awk -v begin="$begin" -v end="$end" '
-  $0 == begin { managed=1; next }
-  $0 == end { managed=0; next }
-  !managed { print }
-' "$zshrc" > "$cleaned"
-while [[ -s "$cleaned" && "$(tail -n 1 "$cleaned")" == "" ]]; do
-  sed -i '$d' "$cleaned"
-done
-{
-  cat "$cleaned"
-  [[ ! -s "$cleaned" ]] || printf '\n'
-  printf '%s\n' "$begin"
-  # HOME deve essere espansa da Zsh, non dall'installer.
-  # shellcheck disable=SC2016
-  printf '%s\n' '[[ -r "$HOME/.config/workstation-setup/zsh-theme.zsh" ]] && source "$HOME/.config/workstation-setup/zsh-theme.zsh"'
-  printf '%s\n' "$end"
-} > "$zshrc"
-rm -f "$cleaned"
-
-log "Tema Zsh/Starship configurato (backup: $zshrc.workstation-setup.bak)"
+log "Tema Zsh/Starship configurato tramite GNU Stow"

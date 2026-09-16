@@ -2,7 +2,8 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-config="$ROOT_DIR/templates/kitty.conf"
+config="$ROOT_DIR/dotfiles/kitty/.config/kitty/kitty.conf"
+[[ -f "$config" ]] || config="$ROOT_DIR/templates/kitty.conf"
 copy_all='map ctrl+shift+a launch --stdin-source=@screen_scrollback --type=clipboard'
 
 [[ "$(grep -Fxc "$copy_all" "$config")" == 1 ]]

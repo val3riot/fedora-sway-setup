@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+die() { printf 'ERRORE: %s\n' "$*" >&2; exit 1; }
+
+show_status() {
+  printf '=== Rootless Docker ===\n'
+  systemctl --user is-enabled docker.service 2>/dev/null || true
+  systemctl --user is-active docker.service 2>/dev/null || true
+
+  printf '\n=== Rootful Docker (deve restare spento) ===\n'
+  systemctl is-enabled docker.service 2>/dev/null || true
+  systemctl is-active docker.service 2>/dev/null || true
+
+  printf '\n=== Docker Desktop ===\n'
+  systemctl --user is-enabled docker-desktop.service 2>/dev/null || true
+  systemctl --user is-active docker-desktop.service 2>/dev/null || true
+
+  printf '\n=== Docker contexts ===\n'
+  docker context ls 2>/dev/null || true
+
+  printf '\n=== Security ===\n'
+  docker info --format '{{json .SecurityOptions}}' 2>/dev/null || true
+}
+
+case "${1:-status}" in
+  rootless)
+    systemctl --user stop docker-desktop.service >/dev/null 2>&1 || true
+    sudo systemctl disable --now docker.service docker.socket containerd.service >/dev/null 2>&1 || true
+    systemctl --user enable --now docker.service
+    docker context inspect rootless >/dev/null 2>&1 || die "Context rootless non trovato. Riesegui il modulo Docker."
+    docker context use rootless >/dev/null
+    echo "Docker Rootless attivo (context: rootless)."
+    ;;
+  desktop)
+    rpm -q docker-desktop >/dev/null 2>&1 || die "Docker Desktop non è installato."
+    [[ -e /dev/kvm ]] || die "Docker Desktop richiede /dev/kvm; verifica la virtualizzazione hardware."
+    systemctl --user stop docker.service >/dev/null 2>&1 || true
+    sudo systemctl disable --now docker.service docker.socket containerd.service >/dev/null 2>&1 || true
+    systemctl --user start docker-desktop.service
+    echo "Docker Desktop avviato. Al primo avvio devi accettare i termini dall'interfaccia grafica."
+    ;;
+  status)
+    show_status
+    ;;
+  *)
+    echo "Uso: docker-runtime {status|rootless|desktop}" >&2
+    exit 2
+    ;;
+esac

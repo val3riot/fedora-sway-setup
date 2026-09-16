@@ -56,3 +56,7 @@
 - Tema: `bin/configure-appearance.py` gestisce Adwaita + prefer-dark, Qt portal,
   icone/cursore Adwaita 24px, Adwaita Sans e Cascadia Mono NF. Niente CSS globale
   né Qt library path. Il chooser portal GTK è una utility floating dedicata.
+- Dotfile utente: gestiti con GNU Stow tramite `bin/stow-dotfiles`. I file sotto
+  `$HOME` sono symlink diretti ai file versionati in `dotfiles/`. Modifiche a
+  runtime su file generati (`theme.conf`, `theme.css`, `fuzzel.ini`, ecc.) restano
+  dinamiche, mentre le configurazioni stabili risiedono esclusivamente nel repository.

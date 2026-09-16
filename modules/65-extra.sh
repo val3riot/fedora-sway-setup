@@ -21,11 +21,7 @@ fi
 [[ "$($cliamp_target --version)" == "cliamp version v$CLIAMP_VERSION" ]] ||
   die "Cliamp $CLIAMP_VERSION non disponibile dopo il setup."
 
-install -m 0755 "$ROOT_DIR/bin/cliamp-widget" "$HOME/.local/bin/cliamp-widget"
-install_managed_config \
-  "$ROOT_DIR/templates/extra/cliamp.desktop" \
-  "$HOME/.local/share/applications/cliamp.desktop" \
-  '# workstation-setup: managed Cliamp entry'
+"$ROOT_DIR/bin/stow-dotfiles" apply extra scripts
 command_exists update-desktop-database &&
   update-desktop-database "$HOME/.local/share/applications"
 

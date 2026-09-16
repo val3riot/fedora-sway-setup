@@ -1,0 +1,285 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck disable=SC1091
+source "$ROOT_DIR/lib/common.sh"
+
+DOTFILES_DIR="$ROOT_DIR/dotfiles"
+TARGET_DIR="${HOME}"
+
+ALL_PACKAGES=(
+  shell
+  tmux
+  kitty
+  sway
+  swaylock
+  waybar
+  systemd-user
+  desktop-theme
+  quickshell
+  scripts
+  extra
+)
+
+usage() {
+  cat <<USAGE
+Uso: ${0##*/} [OPZIONI] COMANDO [PACCHETTI...]
+
+COMANDI
+  apply   Applica o ri-applica (restow) i pacchetti dotfile sotto il target.
+          Esegue la migrazione con backup per file regolari non-symlink.
+  check   Verifica in sola lettura che i symlink siano corretti, non rotti
+          e che non vi siano secret o file duplicati.
+  remove  Rimuove (unstow) i pacchetti dotfile dal target.
+
+OPZIONI
+  -t, --target DIR     Directory target (default: \$HOME)
+  -d, --dotfiles DIR   Directory sorgente dotfiles (default: \$ROOT_DIR/dotfiles)
+  -b, --backup DIR     Directory di backup personalizzata per la migrazione
+  -h, --help           Mostra questo messaggio di aiuto
+
+PACCHETTI
+  Se non specificati, l'azione si applica a tutti i pacchetti gestiti:
+  ${ALL_PACKAGES[*]}
+USAGE
+}
+
+check_stow_installed() {
+  command_exists stow || die "GNU Stow non è installato. Esegui: sudo dnf install stow"
+}
+
+resolve_packages() {
+  local requested=("$@")
+  if ((${#requested[@]} == 0)); then
+    printf '%s\n' "${ALL_PACKAGES[@]}"
+  else
+    for pkg in "${requested[@]}"; do
+      [[ -d "$DOTFILES_DIR/$pkg" ]] || die "Pacchetto dotfile non trovato: $pkg in $DOTFILES_DIR"
+      printf '%s\n' "$pkg"
+    done
+  fi
+}
+
+backup_and_prepare_target() {
+  local target_dir=$1
+  shift
+  local packages=("$@")
+  local backup_dir=""
+  local backup_manifest=""
+
+  for pkg in "${packages[@]}"; do
+    local pkg_dir="$DOTFILES_DIR/$pkg"
+    [[ -d "$pkg_dir" ]] || continue
+
+    while IFS= read -r -d '' src_path; do
+      local rel_path="${src_path#"$pkg_dir"/}"
+      local dst_path="$target_dir/$rel_path"
+
+      # Assicura la presenza della directory genitrice nel target
+      mkdir -p "$(dirname "$dst_path")"
+
+      # Se dst_path esiste ed è un file regolare o directory non symlink
+      if [[ -e "$dst_path" || -L "$dst_path" ]]; then
+        if [[ -L "$dst_path" ]]; then
+          local link_target
+          link_target="$(readlink -f "$dst_path" 2>/dev/null || true)"
+          local expected_target
+          expected_target="$(readlink -f "$src_path" 2>/dev/null || true)"
+          if [[ "$link_target" == "$expected_target" ]]; then
+            # Symlink già corretto, non toccare
+            continue
+          fi
+          # Symlink errato o verso altra destinazione: rimuovi per restow pulito
+          rm -f "$dst_path"
+        else
+          # File regolare esistente non symlink: esegui backup prima di rimuoverlo
+          if [[ -z "$backup_dir" ]]; then
+            local timestamp
+            timestamp="$(date +%Y%m%dT%H%M%S)"
+            local backup_base
+            if [[ -n "$CUSTOM_BACKUP_DIR" ]]; then
+              backup_dir="$CUSTOM_BACKUP_DIR"
+            elif [[ "$target_dir" == "$HOME" ]]; then
+              backup_base="${XDG_STATE_HOME:-$HOME/.local/state}/fedora-workstation-setup/stow-migration"
+              backup_dir="$backup_base/$timestamp"
+            else
+              backup_base="$target_dir/.local/state/fedora-workstation-setup/stow-migration"
+              backup_dir="$backup_base/$timestamp"
+            fi
+            mkdir -p "$backup_dir"
+            backup_manifest="$backup_dir/MIGRATION_MANIFEST.txt"
+            {
+              printf '# Fedora Workstation Setup - GNU Stow Migration Backup\n'
+              printf '# Data: %s\n' "$timestamp"
+              printf '# Target: %s\n' "$target_dir"
+              printf '# Repository dotfiles: %s\n' "$DOTFILES_DIR"
+              printf '# Per ripristinare: cp -a "%s/." "%s/"\n\n' "$backup_dir" "$target_dir"
+            } > "$backup_manifest"
+            log "Backup di migrazione creato in: $backup_dir"
+          fi
+
+          local backup_dest="$backup_dir/$rel_path"
+          mkdir -p "$(dirname "$backup_dest")"
+          cp -p "$dst_path" "$backup_dest"
+          printf 'BACKUP: %s -> %s\n' "$rel_path" "$backup_dest" >> "$backup_manifest"
+          rm -f "$dst_path"
+        fi
+      fi
+    done < <(find "$pkg_dir" -mindepth 1 \( -type f -o -type l \) -not -path '*/__pycache__*' -not -name '*.pyc' -not -name '.*.swp' -print0)
+  done
+
+  if [[ -n "$backup_dir" ]]; then
+    log "Completato backup pre-stow. Ripristino documentato in: $backup_dir/MIGRATION_MANIFEST.txt"
+  fi
+}
+
+action_apply() {
+  local target_dir=$1
+  shift
+  local packages=("$@")
+
+  check_stow_installed
+  [[ -d "$DOTFILES_DIR" ]] || die "Directory dotfiles assente: $DOTFILES_DIR"
+
+  log "Preparazione target per Stow: $target_dir"
+  backup_and_prepare_target "$target_dir" "${packages[@]}"
+
+  log "Applicazione pacchetti Stow: ${packages[*]}"
+  stow --restow --no-folding -d "$DOTFILES_DIR" -t "$target_dir" "${packages[@]}"
+  log "Dotfiles applicati correttamente via GNU Stow."
+}
+
+action_remove() {
+  local target_dir=$1
+  shift
+  local packages=("$@")
+
+  check_stow_installed
+  [[ -d "$DOTFILES_DIR" ]] || die "Directory dotfiles assente: $DOTFILES_DIR"
+
+  log "Rimozione pacchetti Stow dal target: ${packages[*]}"
+  stow -D --no-folding -d "$DOTFILES_DIR" -t "$target_dir" "${packages[@]}"
+  log "Pacchetti rimossi."
+}
+
+action_check() {
+  local target_dir=$1
+  shift
+  local packages=("$@")
+
+  check_stow_installed
+  [[ -d "$DOTFILES_DIR" ]] || die "Directory dotfiles assente: $DOTFILES_DIR"
+
+  local errors=0
+
+  # 1. Verifica assenza di secret nel tree dotfiles
+  if command_exists rg; then
+    local secret_pattern='(?i)(BEGIN (RSA|OPENSSH|EC|DSA|PGP) PRIVATE KEY|api[_-]?key\s*[:=]\s*["\x27][0-9a-zA-Z]{16,}|password\s*[:=]\s*["\x27][^\s"'\''\x27]{8,})'
+    if rg -q "$secret_pattern" "$DOTFILES_DIR"; then
+      warn "Trovato possibile segreto o chiave privata in $DOTFILES_DIR"
+      ((errors++))
+    fi
+  fi
+
+  # 2. Verifica symlink per ogni file dei pacchetti
+  for pkg in "${packages[@]}"; do
+    local pkg_dir="$DOTFILES_DIR/$pkg"
+    if [[ ! -d "$pkg_dir" ]]; then
+      warn "Pacchetto mancante in dotfiles: $pkg"
+      ((errors++))
+      continue
+    fi
+
+    while IFS= read -r -d '' src_path; do
+      local rel_path="${src_path#"$pkg_dir"/}"
+      local dst_path="$target_dir/$rel_path"
+
+      if [[ ! -L "$dst_path" ]]; then
+        if [[ -e "$dst_path" ]]; then
+          warn "File target presente come copia regolare, non symlink Stow: $dst_path"
+        else
+          warn "Target mancante: $dst_path (previsto symlink a $src_path)"
+        fi
+        ((errors++))
+        continue
+      fi
+
+      if [[ ! -e "$dst_path" ]]; then
+        warn "Symlink rotto rilevato: $dst_path"
+        ((errors++))
+        continue
+      fi
+
+      local resolved_dst
+      resolved_dst="$(readlink -f "$dst_path")"
+      local resolved_src
+      resolved_src="$(readlink -f "$src_path")"
+      if [[ "$resolved_dst" != "$resolved_src" ]]; then
+        warn "Symlink punta a sorgente diversa: $dst_path -> $resolved_dst (previsto $resolved_src)"
+        ((errors++))
+      fi
+    done < <(find "$pkg_dir" -mindepth 1 \( -type f -o -type l \) -not -path '*/__pycache__*' -not -name '*.pyc' -not -name '.*.swp' -print0)
+  done
+
+  if ((errors == 0)); then
+    printf 'OK   GNU Stow dotfiles: %d pacchetti verificati in %s, nessun errore\n' "${#packages[@]}" "$target_dir"
+    return 0
+  else
+    warn "GNU Stow check fallito con $errors problemi rilevati."
+    return 1
+  fi
+}
+
+main() {
+  local cmd=""
+  local target="$TARGET_DIR"
+  local dotfiles="$DOTFILES_DIR"
+  CUSTOM_BACKUP_DIR=""
+  local requested_pkgs=()
+
+  while (($#)); do
+    case "$1" in
+      -h|--help) usage; exit 0 ;;
+      -t|--target)
+        shift; (( $# )) || die "Opzione $1 richiede un argomento."
+        target="$1"
+        ;;
+      -d|--dotfiles)
+        shift; (( $# )) || die "Opzione $1 richiede un argomento."
+        dotfiles="$1"
+        ;;
+      -b|--backup)
+        shift; (( $# )) || die "Opzione $1 richiede un argomento."
+        CUSTOM_BACKUP_DIR="$1"
+        ;;
+      apply|check|remove|unstow)
+        [[ -z "$cmd" ]] || die "Specificato più di un comando."
+        cmd="$1"
+        ;;
+      *)
+        if [[ -z "$cmd" ]]; then
+          die "Comando sconosciuto: $1"
+        else
+          requested_pkgs+=("$1")
+        fi
+        ;;
+    esac
+    shift
+  done
+
+  [[ -n "$cmd" ]] || { usage; exit 1; }
+
+  DOTFILES_DIR="$dotfiles"
+  TARGET_DIR="$target"
+
+  mapfile -t pkg_list < <(resolve_packages "${requested_pkgs[@]}")
+
+  case "$cmd" in
+    apply) action_apply "$TARGET_DIR" "${pkg_list[@]}" ;;
+    check) action_check "$TARGET_DIR" "${pkg_list[@]}" ;;
+    remove|unstow) action_remove "$TARGET_DIR" "${pkg_list[@]}" ;;
+  esac
+}
+
+main "$@"

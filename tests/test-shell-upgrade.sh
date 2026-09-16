@@ -8,11 +8,12 @@ trap 'rm -rf -- "$test_dir"' EXIT
 test_root="$test_dir/repo"
 test_home="$test_dir/home"
 mkdir -p \
-  "$test_root/config" "$test_root/lib" "$test_root/modules" "$test_root/templates" \
+  "$test_root/bin" "$test_root/config" "$test_root/lib" "$test_root/modules" "$test_root/dotfiles" \
   "$test_home/.config/workstation-setup" "$test_home/.oh-my-zsh"
 
+install -m 0755 "$REPO_DIR/bin/stow-dotfiles" "$test_root/bin/stow-dotfiles"
+cp -r "$REPO_DIR/dotfiles/shell" "$test_root/dotfiles/"
 install -m 0644 "$REPO_DIR/lib/common.sh" "$test_root/lib/common.sh"
-install -m 0644 "$REPO_DIR/templates/zshrc" "$test_root/templates/zshrc"
 install -m 0755 "$REPO_DIR/modules/20-shell.sh" "$test_root/modules/20-shell.sh"
 install -m 0644 \
   "$REPO_DIR/tests/fixtures/legacy-env.zsh" \

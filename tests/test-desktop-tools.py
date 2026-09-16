@@ -10,17 +10,21 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def module(name, relative):
-    loader = importlib.machinery.SourceFileLoader(name, str(ROOT / relative))
+    target = ROOT / relative
+    if not target.exists():
+        target = ROOT / 'dotfiles/quickshell/.config/quickshell/workstation' / Path(relative).relative_to('templates/quickshell')
+    loader = importlib.machinery.SourceFileLoader(name, str(target))
     spec = importlib.util.spec_from_loader(name, loader)
     result = importlib.util.module_from_spec(spec); loader.exec_module(result)
     return result
 
 
-clipboard = module('clipboard_store', 'templates/quickshell/clipboard/store.py')
+qs_root = 'dotfiles/quickshell/.config/quickshell/workstation' if (ROOT / 'dotfiles/quickshell/.config/quickshell/workstation').exists() else 'templates/quickshell'
+clipboard = module('clipboard_store', f'{qs_root}/clipboard/store.py')
 screenshot = module('screenshot', 'bin/workstation-screenshot')
 lock = module('lock', 'bin/workstation-lock')
 setup = module('desktop_setup', 'bin/configure-desktop-tools.py')
-catalog = module('catalog', 'templates/quickshell/launcher/catalog.py')
+catalog = module('catalog', f'{qs_root}/launcher/catalog.py')
 
 
 class DesktopTools(unittest.TestCase):
@@ -43,7 +47,8 @@ class DesktopTools(unittest.TestCase):
             self.assertFalse(store.add(value))
         for i in range(130): store.add(str(i))
         self.assertEqual(len(store.rows()), 100)
-        result = subprocess.run(['/usr/bin/python3', str(ROOT / 'templates/quickshell/clipboard/store.py'), 'capture'],
+        clipboard_script = ROOT / f'{qs_root}/clipboard/store.py'
+        result = subprocess.run(['/usr/bin/python3', str(clipboard_script), 'capture'],
                                 input='never log this', text=True, capture_output=True,
                                 env=dict(os.environ, CLIPBOARD_STATE='sensitive'))
         self.assertEqual(result.stdout + result.stderr, '')

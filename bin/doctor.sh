@@ -61,9 +61,9 @@ if [[ -r "$HOME/.config/sway/config" ]]; then
   for managed_file in \
     "$HOME/.config/sway/config" \
     "$HOME/.config/fuzzel/fuzzel.ini" \
-    "$HOME/.config/waybar/config.jsonc" \
+    "$HOME/.config/waybar/config" \
     "$HOME/.config/waybar/style.css"; do
-    [[ -r "$managed_file" ]] &&
+    [[ -r "$managed_file" || -r "${managed_file}.jsonc" ]] &&
       printf 'OK   %-20s %s\n' 'Sway config' "$managed_file" ||
       printf 'MISS %-20s %s\n' 'Sway config' "$managed_file"
   done
@@ -321,6 +321,22 @@ if grep -Fq '# workstation-setup: managed tmux config' "$tmux_config" 2>/dev/nul
   duplicate_count="$(grep -Fc '# workstation-setup: managed tmux config' "$tmux_config" || true)"
   [[ "$duplicate_count" == 1 ]] && printf 'OK   %-20s\n' 'tmux managed file' ||
     printf 'WARN %-20s %s\n' 'tmux managed file' "marker: $duplicate_count"
+fi
+
+printf '\nDotfiles GNU Stow:\n'
+check 'GNU Stow' stow
+if [[ -d "$ROOT_DIR/dotfiles" ]]; then
+  printf 'OK   %-20s %s\n' 'Dotfiles repo tree' "$ROOT_DIR/dotfiles"
+else
+  printf 'MISS %-20s %s\n' 'Dotfiles repo tree' "$ROOT_DIR/dotfiles"
+fi
+
+if [[ -x "$ROOT_DIR/bin/stow-dotfiles" ]]; then
+  if "$ROOT_DIR/bin/stow-dotfiles" check >/dev/null 2>&1; then
+    printf 'OK   %-20s %s\n' 'Stow dotfiles check' 'tutti i pacchetti e symlink verificati'
+  else
+    printf 'WARN %-20s %s\n' 'Stow dotfiles check' 'discrepanze rilevate; esegui: bin/stow-dotfiles check'
+  fi
 fi
 
 printf '\nGit include condizionali:\n'

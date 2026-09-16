@@ -105,7 +105,7 @@ sudo dnf install -y \
 
 setup_rootless_docker
 
-install -m 0755 "$ROOT_DIR/bin/docker-runtime" "$HOME/.local/bin/docker-runtime"
+"$ROOT_DIR/bin/stow-dotfiles" apply scripts
 
 log "Docker configurato"
 printf '%s\n' \

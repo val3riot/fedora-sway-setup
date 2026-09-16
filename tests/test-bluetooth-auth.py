@@ -5,7 +5,10 @@ import unittest
 from unittest.mock import patch, MagicMock
 from gi.repository import Gio, GLib
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location('desktop', ROOT / 'templates/quickshell/services/desktop-settings.py')
+desktop_py = ROOT / 'dotfiles/quickshell/.config/quickshell/workstation/services/desktop-settings.py'
+if not desktop_py.exists():
+    desktop_py = ROOT / 'templates/quickshell/services/desktop-settings.py'
+spec = importlib.util.spec_from_file_location('desktop', desktop_py)
 desktop = importlib.util.module_from_spec(spec); spec.loader.exec_module(desktop)
 
 

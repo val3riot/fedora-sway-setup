@@ -4,7 +4,7 @@ set -Eeuo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 "$ROOT_DIR/bin/check-setup.sh"
-find "$ROOT_DIR" -type f \( -name '*.sh' -o -path "$ROOT_DIR/bin/docker-runtime" -o -path "$ROOT_DIR/bin/laptop-power-mode" \) \
+find "$ROOT_DIR" -type f \( -name '*.sh' -o -path "$ROOT_DIR/bin/docker-runtime" -o -path "$ROOT_DIR/bin/laptop-power-mode" -o -path "$ROOT_DIR/bin/stow-dotfiles" \) \
   -not -path "$ROOT_DIR/.git/*" -print0 | xargs -0 shellcheck --severity=warning
 
 for test_script in "$ROOT_DIR"/tests/test-*.sh; do

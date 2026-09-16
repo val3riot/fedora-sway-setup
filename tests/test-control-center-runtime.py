@@ -16,7 +16,10 @@ def main():
         print('SKIP Quick Settings runtime: compositor tools absent'); return
     with tempfile.TemporaryDirectory(prefix='desktop-tools-control-') as tmp:
         work=Path(tmp); runtime=work/'runtime'; runtime.mkdir(mode=0o700)
-        config=work/'config'; shutil.copytree(ROOT/'templates/quickshell',config,ignore=shutil.ignore_patterns('__pycache__'))
+        qs_src = ROOT / 'dotfiles/quickshell/.config/quickshell/workstation'
+        if not qs_src.exists():
+            qs_src = ROOT / 'templates/quickshell'
+        config=work/'config'; shutil.copytree(qs_src,config,ignore=shutil.ignore_patterns('__pycache__'))
         source=(config/'shell.qml').read_text().replace('import QtQuick','import QtQuick\nimport Quickshell.Io')
         source=source.replace('id: desktopRoot','''id: desktopRoot
     property var testBars: []

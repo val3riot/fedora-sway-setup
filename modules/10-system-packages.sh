@@ -13,7 +13,7 @@ fi
 
 base_packages=(
   git gitk git-lfs openssh-clients curl wget rsync
-  unzip zip tar gzip bzip2 xz jq tree
+  unzip zip tar gzip bzip2 xz jq tree stow
   zsh bash-completion xdg-user-dirs
   cifs-utils
 )

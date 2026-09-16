@@ -15,7 +15,7 @@ START = re.compile(r'^\s*(?:exec(?:_always)?\b.*\b(?:waybar|quickshell|qs)\b|bar
 
 def plan(home, source):
     config = home / '.config/sway/config'
-    if not config.is_file() or config.is_symlink():
+    if not config.is_file() or (config.is_symlink() and 'dotfiles' not in str(config.resolve())):
         raise ValueError('Serve una configurazione Sway managed regolare; eseguire prima --sway.')
     # Do not compete with independently enabled user services/autostart apps.
     for wants in (home / '.config/systemd/user').glob('*.wants'):
@@ -85,16 +85,20 @@ def plan(home, source):
     manifest = destination / '.workstation-managed'
     previous = {}
     if destination.exists():
-        if destination.is_symlink() or manifest.is_symlink() or not manifest.is_file():
+        if (destination.is_symlink() and 'dotfiles' not in str(destination.resolve())) or \
+           (manifest.is_symlink() and 'dotfiles' not in str(manifest.resolve())):
             raise ValueError('Directory Quickshell personale: non verrà sovrascritta.')
-        import json
-        previous = json.loads(manifest.read_text())
+        if manifest.is_file():
+            import json
+            previous = json.loads(manifest.read_text())
     import hashlib
     files = {str(f.relative_to(source)): f for f in source.rglob('*') if f.is_file() and '__pycache__' not in f.parts}
     for name, file in files.items():
         target = destination / name
-        if target.is_symlink() or any(p.is_symlink() for p in target.parents if p != home):
-            raise ValueError('Symlink nella configurazione: ' + str(target))
+        if target.is_symlink():
+            if 'dotfiles' not in str(target.resolve()):
+                raise ValueError('Symlink nella configurazione: ' + str(target))
+            continue
         if target.exists():
             digest = hashlib.sha256(target.read_bytes()).hexdigest()
             if digest != previous.get(name) and target.read_bytes() != file.read_bytes():
@@ -111,7 +115,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--home', type=Path, default=Path.home())
-    parser.add_argument('--source', type=Path, default=Path(__file__).resolve().parents[1] / 'templates/quickshell')
+    repo_root = Path(__file__).resolve().parents[1]
+    default_source = repo_root / 'dotfiles/quickshell/.config/quickshell/workstation'
+    if not default_source.exists():
+        default_source = repo_root / 'templates/quickshell'
+    parser.add_argument('--source', type=Path, default=default_source)
     args = parser.parse_args()
     if os.environ.get('XDG_CONFIG_HOME', str(args.home / '.config')) != str(args.home / '.config'):
         raise ValueError('Il profilo Sway corrente usa ~/.config; XDG_CONFIG_HOME alternativo non supportato.')
@@ -135,6 +143,9 @@ def main():
     hashes = {}
     for name, source in files.items():
         target = destination / name
+        if target.is_symlink() and 'dotfiles' in str(target.resolve()):
+            hashes[name] = hashlib.sha256(source.read_bytes()).hexdigest()
+            continue
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
         hashes[name] = hashlib.sha256(source.read_bytes()).hexdigest()
@@ -143,7 +154,8 @@ def main():
     drop.write_text(DROPIN)
     desktop_tools.apply(args.home, desktop_changes)
     notifications.apply(notification_changes)
-    config.write_text(content)
+    if not (config.is_symlink() and 'dotfiles' in str(config.resolve())):
+        config.write_text(content)
     state = args.home / '.config/workstation-setup/bar'
     state.parent.mkdir(parents=True, exist_ok=True)
     state.write_text('quickshell\n')

@@ -21,7 +21,7 @@ for file in shell.qml Theme.qml qmldir bar/Bar.qml bar/BarButton.qml bar/Workspa
   bar/SystemStats.qml services/SystemData.qml services/AudioService.qml services/BluetoothService.qml \
   services/stats.py services/network.py services/wifi.py services/desktop-settings.py services/occupancy.py services/power.sh \
   popups/BluetoothPopup.qml popups/BluetoothDeviceRow.qml popups/DeviceButton.qml popups/ActionButton.qml popups/BarPopup.qml popups/AudioPopup.qml popups/NetworkPopup.qml \
-  popups/CalendarPopup.qml popups/PowerMenu.qml .workstation-managed; do
+  popups/CalendarPopup.qml popups/PowerMenu.qml; do
   [[ -r "$config/$file" ]] && ok config "$file" || fail config "$file"
 done
 if python3 "$ROOT_DIR/bin/configure-quickshell.py" --check >/dev/null 2>&1 &&
@@ -44,9 +44,11 @@ done
 /usr/bin/python3 -c 'import gi; gi.require_version("NM", "1.0"); from gi.repository import NM' &&
   ok libnm || fail libnm
 bash "$ROOT_DIR/bin/install-bluetui.sh" --check || fail BlueTUI 'provenance o installazione non conforme'
+rule_62="$ROOT_DIR/dotfiles/sway/.config/sway/config.d/62-system-utilities.conf"
+[[ -f "$rule_62" ]] || rule_62="$ROOT_DIR/templates/sway/config.d/62-system-utilities.conf"
 if [[ -x "$HOME/.local/bin/workstation-system-tool" ]] &&
    cmp -s "$ROOT_DIR/bin/workstation-system-tool" "$HOME/.local/bin/workstation-system-tool" &&
-   cmp -s "$ROOT_DIR/templates/sway/config.d/62-system-utilities.conf" "$HOME/.config/sway/config.d/62-system-utilities.conf"; then
+   cmp -s "$rule_62" "$HOME/.config/sway/config.d/62-system-utilities.conf"; then
   ok 'system utilities' 'helper e app_id Sway dedicati; Kitty normale tiled'
 else
   fail 'system utilities' 'helper/regola assente o modificata'
@@ -70,7 +72,9 @@ for helper in workstation-shell workstation-screenshot workstation-lock; do
     fail 'desktop helper' "$helper assente/modificato"
   fi
 done
-if cmp -s "$ROOT_DIR/templates/sway/config.d/92-desktop-tools.conf" "$HOME/.config/sway/config.d/92-desktop-tools.conf"; then
+rule_92="$ROOT_DIR/dotfiles/sway/.config/sway/config.d/92-desktop-tools.conf"
+[[ -f "$rule_92" ]] || rule_92="$ROOT_DIR/templates/sway/config.d/92-desktop-tools.conf"
+if cmp -s "$rule_92" "$HOME/.config/sway/config.d/92-desktop-tools.conf"; then
   ok 'desktop keys' 'launcher, clipboard, screenshot e OSD'
 else
   fail 'desktop keys' 'drop-in assente/modificato'

@@ -29,10 +29,13 @@ class Appearance(unittest.TestCase):
             self.assertFalse((home/'.config/gtk-3.0/settings.ini').exists())
 
     def test_quick_settings_composition(self):
-        shell = (ROOT/'templates/quickshell/shell.qml').read_text()
-        quick = (ROOT/'templates/quickshell/popups/QuickSettings.qml').read_text()
+        qs_src = ROOT / 'dotfiles/quickshell/.config/quickshell/workstation'
+        if not qs_src.exists():
+            qs_src = ROOT / 'templates/quickshell'
+        shell = (qs_src / 'shell.qml').read_text()
+        quick = (qs_src / 'popups/QuickSettings.qml').read_text()
         self.assertEqual(shell.count('sourceComponent: QuickSettings {'), 1)
-        self.assertNotIn('QuickSettings {', (ROOT/'templates/quickshell/bar/Bar.qml').read_text())
+        self.assertNotIn('QuickSettings {', (qs_src / 'bar/Bar.qml').read_text())
         for backend in ('Process {', 'Timer {', 'BluetoothService {', 'AudioService {', 'SystemData {'):
             self.assertNotIn(backend, quick)
         for operation in ('setVolume(value)', 'setInputVolume(value)', 'muteInput()', 'toggle()', 'networkCommand(', 'navigate("power")'):
