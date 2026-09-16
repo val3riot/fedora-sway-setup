@@ -8,7 +8,7 @@ grep -Fq -- '--no-quickshell' <<<"$help_output"
 grep -Fq -- '--dry-run' <<<"$help_output"
 grep -Fq -- '--doctor' <<<"$help_output"
 grep -Fq -- '--set-wallpaper' <<<"$help_output"
-grep -Fq 'workstation-tools' <<<"$help_output"
+grep -Fq 'fedora-workstation-tools' <<<"$help_output"
 [[ "$("$ROOT_DIR/install.sh" --info)" == "$help_output" ]]
 [[ "$("$ROOT_DIR/install.sh" -h)" == "$help_output" ]]
 

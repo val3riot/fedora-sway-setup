@@ -4,7 +4,7 @@ Bootstrap idempotente e focalizzato per configurare un ambiente desktop Wayland 
 
 > **Scope delimitato:** Questo repository gestisce esclusivamente il sistema operativo base e l'ambiente desktop.
 > Strumenti di sviluppo (Java, Node, Python, Docker, VM), agenti AI e applicazioni personali sono gestiti nel repository modulare separato:
-> [**workstation-tools**](../workstation-tools/README.md) (`~/Progetti/personali/workstation-tools`).
+> [**fedora-workstation-tools**](../fedora-workstation-tools/README.md) (`~/Progetti/personali/fedora-workstation-tools`).
 
 ---
 
@@ -115,16 +115,17 @@ Per l'elenco interattivo e ricercabile completo, premere **`Super+G`** (o esegui
 
 ## 5. Strumenti di Sviluppo e Strumenti Opzionali
 
-Se sulla workstation servono container Docker, macchine virtuali libvirt/KVM, toolchain Java/Node/Python, IDE come VS Code o agenti AI come Codex, fare riferimento a **`workstation-tools`**:
+Se sulla workstation servono container Docker, macchine virtuali libvirt/KVM, toolchain di sviluppo o agenti AI come Codex, fare riferimento a **`fedora-workstation-tools`**:
 
 ```bash
-cd ~/Progetti/personali/workstation-tools
+cd ~/Progetti/personali/fedora-workstation-tools
 ./install.sh --help
 
 # Esempi:
-./install.sh --dev           # SDKMAN, Node, Miniconda, VS Code, DBeaver, Bruno
-./install.sh --infra         # Docker rootless, KVM, Tailscale, VPN
-./install.sh --agents        # Codex, Claude Code, Copilot CLI
+./install.sh --dev              # VS Code, Vim, SDKMAN, NVM, Miniconda, toolchain C/C++
+./install.sh --docker           # Docker CE rootless
+./install.sh --vpn tailscale    # Tailscale mesh VPN
+./install.sh --codex            # OpenAI Codex CLI
 ```
 
 ---

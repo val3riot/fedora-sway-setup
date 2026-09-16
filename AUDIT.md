@@ -1,7 +1,7 @@
 # Provenienza del software — Fedora Sway Setup
 
 Questo repository gestisce esclusivamente l'ambiente desktop Wayland basato su Sway per Fedora 44.
-Tutti gli strumenti di sviluppo (Java, Node, Python), infrastruttura (Docker, KVM/libvirt, Tailscale), agenti AI (Codex, Claude, Copilot) e applicazioni personali sono gestiti nel repository separato **`workstation-tools`** (`~/Progetti/personali/workstation-tools/AUDIT.md`).
+Tutti gli strumenti di sviluppo (Java, Node, Python), infrastruttura (Docker, KVM/libvirt, Tailscale) e agenti AI (Codex, Claude, Copilot) sono gestiti nel repository separato **`fedora-workstation-tools`** (`~/Progetti/personali/fedora-workstation-tools/AUDIT.md`).
 
 ---
 
@@ -51,7 +51,7 @@ Nessun download viene eseguito senza validazione SHA-256 preventiva. Non sono am
 
 - **COPR**: Nessun repository COPR è abilitato o richiesto.
 - **Repository Vendor esterni**: Nessun repository RPM di terze parti (Microsoft, Docker, ecc.) è configurato in questo repository.
-- **Flatpak**: Nessuna applicazione Flatpak è installata dallo script di setup desktop (gestite da `workstation-tools`).
+- **Flatpak**: Nessuna applicazione Flatpak è installata dallo script di setup desktop (applicazioni utente gestite separatamente da `fedora-workstation-tools`).
 
 ---
 

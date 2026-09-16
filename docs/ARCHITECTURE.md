@@ -2,7 +2,7 @@
 
 Questo repository (`fedora-sway-setup`) ha un unico scopo ben delimitato: **fornire una workstation Fedora completa basata su Sway, Quickshell e GNU Stow**.
 
-Non gestisce container, macchine virtuali, SDK di sviluppo (Java, Node, Python), agenti AI o applicazioni desktop di terze parti: questi componenti risiedono nel repository gemello **`workstation-tools`** (`~/Progetti/personali/workstation-tools`).
+Non gestisce container, macchine virtuali, SDK di sviluppo (Java, Node, Python), agenti AI o client VPN: questi componenti risiedono nel repository gemello **`fedora-workstation-tools`** (`~/Progetti/personali/fedora-workstation-tools`).
 
 ---
 
@@ -48,7 +48,7 @@ Non gestisce container, macchine virtuali, SDK di sviluppo (Java, Node, Python),
 
 ## 2. Divisione dei Due Repository
 
-| Ambito | Repository: `fedora-sway-setup` | Repository: `workstation-tools` |
+| Ambito | Repository: `fedora-sway-setup` | Repository: `fedora-workstation-tools` |
 |---|---|---|
 | **Missione** | "Rendo Fedora il mio desktop Sway completo" | "Installo strumenti opzionali sopra la workstation" |
 | **Piattaforma** | Fedora 44 x86_64, Wayland, Sway, Greetd | Agnostico rispetto al DE (gira su Sway, GNOME o headless) |

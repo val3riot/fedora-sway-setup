@@ -14,7 +14,7 @@
 5. Il presente repository (`fedora-sway-setup`) ha come unico scope il sistema
    operativo base e l'ambiente desktop Wayland/Sway con Quickshell.
 6. Strumenti di sviluppo opzionali (Java, Node, Python, Docker, VM, Tailscale,
-   agenti CLI, app Flatpak) risiedono separatamente in `~/Progetti/personali/workstation-tools`.
+   agenti CLI, app Flatpak) risiedono separatamente in `~/Progetti/personali/fedora-workstation-tools`.
 7. Non eseguire l'intero setup come root. Usare `sudo` soltanto per pacchetti,
    servizi systemd e configurazioni realmente di sistema.
 8. Conservare progetti e checkout nella gerarchia Progetti. Non archiviare
@@ -29,11 +29,11 @@
 
 ## Architettura a due repository
 
-- **fedora-sway-setup** (`~/Progetti/personali/fedora-workstation-setup`):
+- **fedora-sway-setup** (`~/Progetti/personali/fedora-sway-setup`):
   Scope desktop: Sway, Quickshell, Greetd, Kitty, Zsh, dotfile GNU Stow, audio PipeWire,
   Bluetooth con BlueTUI, NetworkManager, portali XDG, tema Adwaita e sfondi.
-- **workstation-tools** (`~/Progetti/personali/workstation-tools`):
-  Scope strumenti: Profili `--dev`, `--infra`, `--agents`, `--apps`, `--media`.
+- **fedora-workstation-tools** (`~/Progetti/personali/fedora-workstation-tools`):
+  Scope strumenti: Moduli `--dev`, `--docker`, `--dbmanager`, `--apiclient`, `--agents`, `--vpn`, `--vm`.
 
 ## Note per componenti desktop specifici
 

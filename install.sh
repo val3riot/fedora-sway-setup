@@ -26,8 +26,8 @@ OPZIONI
 
 STRUMENTI OPZIONALI
   Strumenti di sviluppo (Java, Node, Python, C++), container (Docker), macchine virtuali,
-  agenti AI e applicazioni personali sono gestiti separatamente nel repository:
-  workstation-tools (~/Progetti/personali/workstation-tools).
+  agenti AI e client VPN sono gestiti separatamente nel repository:
+  fedora-workstation-tools (~/Progetti/personali/fedora-workstation-tools).
 
 VERIFICA
   ./bin/doctor.sh     Diagnostica rapida desktop (< 2 secondi).

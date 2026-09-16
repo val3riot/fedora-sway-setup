@@ -128,7 +128,7 @@ trap 'rm -f "$tmp_context"' EXIT
   cat <<EOF
 # Contesto della workstation per agenti
 
-> File gestito da fedora-workstation-setup. Ultimo aggiornamento: $(date --iso-8601=seconds)
+> File gestito da fedora-sway-setup. Ultimo aggiornamento: $(date --iso-8601=seconds)
 > Leggere anche \`$local_notes\`; quel file è riservato alle note dell'utente.
 
 ## Sistema

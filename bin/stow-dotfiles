@@ -80,16 +80,20 @@ backup_and_prepare_target() {
       # Se dst_path esiste ed è un file regolare o directory non symlink
       if [[ -e "$dst_path" || -L "$dst_path" ]]; then
         if [[ -L "$dst_path" ]]; then
-          local link_target
+          local literal_target link_target expected_target
+          literal_target="$(readlink "$dst_path" 2>/dev/null || true)"
           link_target="$(readlink -f "$dst_path" 2>/dev/null || true)"
-          local expected_target
           expected_target="$(readlink -f "$src_path" 2>/dev/null || true)"
-          if [[ "$link_target" == "$expected_target" ]]; then
+          if [[ "$literal_target" =~ fedora-workstation-setup ]]; then
+            # Symlink legacy con vecchio percorso repository: rimuovi per restow con nuovo percorso
+            rm -f "$dst_path"
+          elif [[ "$link_target" == "$expected_target" ]]; then
             # Symlink già corretto, non toccare
             continue
+          else
+            # Symlink errato o verso altra destinazione: rimuovi per restow pulito
+            rm -f "$dst_path"
           fi
-          # Symlink errato o verso altra destinazione: rimuovi per restow pulito
-          rm -f "$dst_path"
         else
           # File regolare esistente non symlink: esegui backup prima di rimuoverlo
           if [[ -z "$backup_dir" ]]; then
