@@ -1,0 +1,88 @@
+/* workstation-setup: managed gtkgreet theme */
+
+* {
+    font-family: "Adwaita Sans", "Cantarell", sans-serif;
+    font-size: 14px;
+    color: #e6e6e6;
+}
+
+window, window.background {
+    background-color: transparent;
+}
+
+#body {
+    background-color: rgba(22, 22, 26, 0.90);
+    border: 1px solid rgba(232, 137, 35, 0.45); /* Workstation accent #e88923 */
+    border-radius: 14px;
+    padding: 44px 50px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
+    margin: 80px;
+}
+
+/* Prompt labels */
+label {
+    color: #d0d0d0;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+/* Text and password inputs */
+entry {
+    background-color: #151518;
+    color: #ffffff;
+    border: 1px solid #36363d;
+    border-radius: 8px;
+    padding: 10px 14px;
+    min-width: 260px;
+    min-height: 24px;
+    margin-bottom: 12px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+    caret-color: #e88923;
+}
+
+entry:focus {
+    border-color: #e88923;
+    box-shadow: 0 0 0 2px rgba(232, 137, 35, 0.35);
+}
+
+/* Action buttons */
+button {
+    background-color: #27272d;
+    color: #ffffff;
+    border: 1px solid #3e3e46;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-weight: 600;
+}
+
+button:hover {
+    background-color: #e88923;
+    color: #121214;
+    border-color: #e88923;
+}
+
+button:active {
+    background-color: #cf7316;
+    color: #ffffff;
+}
+
+/* Session combobox */
+combobox button.combo {
+    background-color: #19191d;
+    border: 1px solid #36363d;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+combobox button.combo:hover {
+    border-color: #e88923;
+    background-color: #232328;
+    color: #ffffff;
+}
+
+/* Error message */
+.auth_error, label#error {
+    color: #ff6b6b;
+    font-weight: 600;
+    margin-top: 8px;
+}

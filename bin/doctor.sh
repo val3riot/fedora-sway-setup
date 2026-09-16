@@ -67,6 +67,60 @@ if [[ -r "$HOME/.config/sway/config" ]]; then
       printf 'OK   %-20s %s\n' 'Sway config' "$managed_file" ||
       printf 'MISS %-20s %s\n' 'Sway config' "$managed_file"
   done
+
+  check 'Wallpaper helper' workstation-wallpaper
+  if [[ -r "$HOME/.local/share/backgrounds/workstation-setup.jpg" ]]; then
+    printf 'OK   %-20s %s\n' 'Wallpaper canonico' "$HOME/.local/share/backgrounds/workstation-setup.jpg"
+  else
+    printf 'MISS %-20s %s\n' 'Wallpaper canonico' "$HOME/.local/share/backgrounds/workstation-setup.jpg"
+  fi
+  if grep -Fq 'workstation-setup.jpg' "$HOME/.config/sway/config" 2>/dev/null; then
+    printf 'OK   %-20s %s\n' 'Sway wallpaper' 'configurato su sorgente canonica'
+  else
+    printf 'WARN %-20s %s\n' 'Sway wallpaper' 'sorgente canonica non trovata in sway/config'
+  fi
+  if grep -Fq 'workstation-setup.jpg' "$HOME/.local/bin/workstation-lock" 2>/dev/null; then
+    printf 'OK   %-20s %s\n' 'Swaylock wallpaper' 'coerente con sorgente canonica'
+  else
+    printf 'WARN %-20s %s\n' 'Swaylock wallpaper' 'sorgente canonica non trovata in workstation-lock'
+  fi
+
+  check 'Greetd daemon' greetd
+  check 'Gtkgreet' gtkgreet
+  for greetd_conf in /etc/greetd/config.toml /etc/greetd/sway-config /etc/greetd/gtkgreet.css; do
+    if [[ -r "$greetd_conf" ]]; then
+      printf 'OK   %-20s %s\n' 'Greeter config' "$greetd_conf"
+    else
+      printf 'MISS %-20s %s\n' 'Greeter config' "$greetd_conf"
+    fi
+  done
+  if [[ -r /usr/share/wayland-sessions/sway.desktop ]]; then
+    printf 'OK   %-20s %s\n' 'Sway session entry' '/usr/share/wayland-sessions/sway.desktop'
+  else
+    printf 'MISS %-20s %s\n' 'Sway session entry' '/usr/share/wayland-sessions/sway.desktop'
+  fi
+
+  dm_target="$(readlink -f /etc/systemd/system/display-manager.service 2>/dev/null || true)"
+  if [[ -n "$dm_target" ]]; then
+    printf 'OK   %-20s %s\n' 'Display manager' "$(basename "$dm_target")"
+  else
+    printf 'WARN %-20s %s\n' 'Display manager' 'nessun display-manager.service configurato'
+  fi
+
+  sddm_enabled=false
+  greetd_enabled=false
+  systemctl is-enabled sddm.service >/dev/null 2>&1 && sddm_enabled=true
+  systemctl is-enabled greetd.service >/dev/null 2>&1 && greetd_enabled=true
+
+  if [[ "$sddm_enabled" == true && "$greetd_enabled" == true ]]; then
+    printf 'WARN %-20s %s\n' 'DM conflict' 'sia sddm che greetd risultano abilitati'
+  elif [[ "$greetd_enabled" == true ]]; then
+    printf 'OK   %-20s %s\n' 'DM conflict' 'greetd attivo come unico greeter abilitato'
+  elif [[ "$sddm_enabled" == true ]]; then
+    printf 'OK   %-20s %s\n' 'DM conflict' 'sddm abilitato (nessun conflitto attivo)'
+  else
+    printf 'OPT  %-20s %s\n' 'DM conflict' 'nessun display manager abilitato'
+  fi
 fi
 if command -v gnome-shell >/dev/null 2>&1; then
   if command -v gnome-extensions >/dev/null 2>&1 &&

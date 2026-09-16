@@ -111,6 +111,7 @@ Altre utility:
 ```bash
 ./bin/add-git-identity.sh
 ./bin/create-vms.sh NOME ISO
+workstation-wallpaper /percorso/a/immagine.jpg
 ./bin/set-wallpaper.sh
 docker-runtime status
 laptop-power-mode status
@@ -519,3 +520,28 @@ servizi utente; applicazioni/sessioni già avviate possono richiedere riapertura
 Shortcut principali invariati: Mod+d launcher, Mod+v clipboard,
 Print/Shift+Print/Mod+Print screenshot area/output/finestra, XF86 audio/luminosità
 con OSD. Waybar e gli helper di rollback restano disponibili.
+
+### Gestione Wallpaper (workstation-wallpaper)
+
+Il comando `workstation-wallpaper [IMMAGINE]` gestisce il background del desktop Sway e del blocco schermo:
+
+- **Comando:** `workstation-wallpaper /percorso/a/immagine.jpg` (oppure interattivo se eseguito senza argomenti in un terminale, o tramite wrapper `./bin/set-wallpaper.sh`).
+- **Sorgente canonica:** `~/.local/share/backgrounds/workstation-setup.jpg`, aggiornata in modo atomico (nessuno stato intermedio corrotto).
+- **Aggiornamento immediato:** applica istantaneamente lo sfondo a tutti gli output attivi (`output * bg ... fill`) tramite IPC `swaymsg`, senza richiedere `swaymsg reload` e senza riavviare Quickshell. Se eseguito fuori da Sway (es. TTY o script di setup), aggiorna la sorgente persistente senza errori.
+- **Integrazione swaylock:** `workstation-lock` e swaylock leggono direttamente la stessa sorgente canonica, garantendo coerenza visiva tra desktop e lockscreen.
+
+### Login Manager e Greeter Wayland (greetd + gtkgreet)
+
+L'esperienza di login grafico della workstation utilizza **greetd** con il greeter **gtkgreet** sotto Sway:
+
+- **Greeter utilizzato:** `greetd` (daemon) con `gtkgreet` (greeter grafico GTK3 con layer-shell).
+- **Motivazione:** soluzione Wayland-native ufficiale nei repository Fedora 44, estremamente leggera (nessun DE completo come KDE o GNOME richiesto al login), e nativamente integrata con il compositor Sway.
+- **Tema e coerenza visiva:** greeter styled con tema scuro (`#16161a`), scheda centrale con bordo accent arancione (`#e88923`), font `Adwaita Sans`, e visualizzazione in background dello stesso wallpaper canonico della workstation (`/etc/greetd/wallpaper.jpg`), creando continuità totale tra Login -> Desktop Sway -> Lockscreen.
+- **Avvio sessione Sway:** gtkgreet avvia la sessione Wayland standard `/usr/bin/start-sway` (da `/usr/share/wayland-sessions/sway.desktop`), importando le variabili d'ambiente, i portali XDG, Quickshell, PipeWire e tutti i servizi utente systemd senza alterare la configurazione Sway.
+- **Rollback da TTY:** in caso di problemi all'avvio del greeter, passare a TTY3 (`Ctrl+Alt+F3`), autenticarsi con le proprie credenziali e ripristinare il display manager precedente (SDDM):
+  ```bash
+  sudo systemctl disable greetd.service
+  sudo systemctl enable sddm.service
+  sudo systemctl start sddm.service
+  ```
+  In alternativa, è sempre possibile avviare Sway manualmente da TTY con il comando `start-sway`.

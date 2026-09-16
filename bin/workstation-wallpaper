@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+# workstation-setup: managed wallpaper switcher
+"""Set, validate, and persist the workstation wallpaper for Sway and swaylock."""
+import argparse
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+import gi
+gi.require_version('GdkPixbuf', '2.0')
+from gi.repository import GdkPixbuf, GLib
+
+
+CANONICAL_WALLPAPER_PATH = Path.home() / '.local/share/backgrounds/workstation-setup.jpg'
+GREETER_WALLPAPER_PATH = Path('/etc/greetd/wallpaper.jpg')
+
+
+def validate_image(image_path: Path) -> GdkPixbuf.Pixbuf:
+    """Validate that the file exists, is readable, and is a valid image supported by Sway/swaylock."""
+    if not image_path.exists():
+        raise FileNotFoundError(f"File immagine non trovato: {image_path}")
+    if not image_path.is_file():
+        raise ValueError(f"Il percorso specificato non è un file: {image_path}")
+    if not os.access(image_path, os.R_OK):
+        raise PermissionError(f"Permessi insufficienti per leggere l'immagine: {image_path}")
+
+    try:
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(str(image_path))
+        return pixbuf
+    except GLib.Error as err:
+        raise ValueError(f"Formato immagine non valido o corrotto ({err.message}): {image_path}") from err
+
+
+def update_target_atomically(source_path: Path, target_path: Path) -> None:
+    """Atomically copy source_path to target_path using a temporary file in the target directory."""
+    target_dir = target_path.parent
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    tmp_target = target_dir / f".{target_path.name}.tmp.{os.getpid()}"
+    try:
+        shutil.copyfile(source_path, tmp_target)
+        os.chmod(tmp_target, 0o644)
+        tmp_target.replace(target_path)
+    except Exception:
+        if tmp_target.exists():
+            tmp_target.unlink(missing_ok=True)
+        raise
+
+
+def apply_sway_runtime(target_path: Path) -> bool:
+    """Apply wallpaper immediately to all active Sway outputs via swaymsg.
+
+    Returns True if Sway runtime was updated, False if Sway is not active.
+    """
+    try:
+        # Quick check if Sway IPC socket responds
+        ver_check = subprocess.run(
+            ['swaymsg', '-t', 'get_version'],
+            capture_output=True,
+            text=True,
+            timeout=3
+        )
+        if ver_check.returncode != 0:
+            return False
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return False
+
+    # Apply wallpaper to all outputs
+    res = subprocess.run(
+        ['swaymsg', '--', 'output', '*', 'bg', str(target_path), 'fill'],
+        capture_output=True,
+        text=True,
+        timeout=5
+    )
+    if res.returncode != 0:
+        sys.stderr.write(f"Avviso: swaymsg non è riuscito ad applicare lo sfondo a runtime: {res.stderr.strip()}\n")
+        return False
+
+    return True
+
+
+def sync_gsettings(target_path: Path) -> None:
+    """Update GNOME / desktop portal background settings if gsettings is available."""
+    if shutil.which('gsettings') is None:
+        return
+    uri = target_path.as_uri()
+    for key in ('picture-uri', 'picture-uri-dark'):
+        subprocess.run(
+            ['gsettings', 'set', 'org.gnome.desktop.background', key, uri],
+            capture_output=True,
+            check=False
+        )
+
+
+def sync_greeter_wallpaper(source_path: Path) -> None:
+    """Synchronize greeter wallpaper if /etc/greetd/wallpaper.jpg exists and is writable."""
+    if GREETER_WALLPAPER_PATH.parent.is_dir() and os.access(GREETER_WALLPAPER_PATH.parent, os.W_OK):
+        try:
+            update_target_atomically(source_path, GREETER_WALLPAPER_PATH)
+        except Exception as e:
+            sys.stderr.write(f"Avviso: impossibile aggiornare il greeter wallpaper ({e})\n")
+    elif GREETER_WALLPAPER_PATH.is_file() and os.access(GREETER_WALLPAPER_PATH, os.W_OK):
+        try:
+            update_target_atomically(source_path, GREETER_WALLPAPER_PATH)
+        except Exception as e:
+            sys.stderr.write(f"Avviso: impossibile aggiornare il greeter wallpaper ({e})\n")
+
+
+def check_current_wallpaper() -> int:
+    """Check status of canonical wallpaper and swaylock configuration."""
+    if not CANONICAL_WALLPAPER_PATH.is_file():
+        print(f"MISS Wallpaper canonico assente: {CANONICAL_WALLPAPER_PATH}")
+        return 1
+
+    try:
+        pixbuf = validate_image(CANONICAL_WALLPAPER_PATH)
+        print(f"OK   Wallpaper canonico: {CANONICAL_WALLPAPER_PATH} ({pixbuf.get_width()}x{pixbuf.get_height()})")
+        return 0
+    except Exception as err:
+        print(f"FAIL Wallpaper canonico non valido: {err}")
+        return 1
+
+
+def pick_wallpaper_interactively() -> Path | None:
+    """List available wallpapers in standard locations and prompt user."""
+    candidates = []
+    search_dirs = [
+        Path(__file__).resolve().parent.parent / 'wallpapers',
+        Path.home() / 'wallpapers',
+        Path.home() / 'Pictures/wallpapers',
+    ]
+
+    for s_dir in search_dirs:
+        if s_dir.is_dir():
+            for entry in sorted(s_dir.iterdir()):
+                if entry.is_file() and entry.suffix.lower() in ('.jpg', '.jpeg', '.png', '.webp', '.svg', '.jxl', '.avif'):
+                    if entry not in candidates:
+                        candidates.append(entry)
+
+    if not candidates:
+        sys.stderr.write("Nessun wallpaper trovato nelle cartelle predefinite.\n")
+        return None
+
+    if not sys.stdin.isatty():
+        sys.stderr.write("Uso: workstation-wallpaper /percorso/a/immagine.jpg\n")
+        return None
+
+    print("Scegli il wallpaper da applicare:")
+    for idx, cand in enumerate(candidates, start=1):
+        print(f"  {idx}) {cand.name} ({cand.parent})")
+
+    while True:
+        try:
+            choice = input(f"Numero [1-{len(candidates)}]: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return None
+        if choice.isdigit():
+            c_int = int(choice)
+            if 1 <= c_int <= len(candidates):
+                return candidates[c_int - 1]
+        print("Scelta non valida.")
+
+
+def set_wallpaper(image_path: Path) -> int:
+    """Validate, atomically persist, and apply wallpaper."""
+    try:
+        resolved_source = image_path.expanduser().resolve(strict=True)
+    except FileNotFoundError:
+        sys.stderr.write(f"Errore: file non trovato: {image_path}\n")
+        return 1
+
+    try:
+        pixbuf = validate_image(resolved_source)
+    except Exception as err:
+        sys.stderr.write(f"Errore di validazione: {err}\n")
+        return 1
+
+    # Atomic copy to canonical location
+    try:
+        update_target_atomically(resolved_source, CANONICAL_WALLPAPER_PATH)
+    except Exception as err:
+        sys.stderr.write(f"Errore nel salvataggio del wallpaper: {err}\n")
+        return 1
+
+    # Sync greeter wallpaper if writable
+    sync_greeter_wallpaper(resolved_source)
+
+    # Sync gsettings (if available)
+    sync_gsettings(CANONICAL_WALLPAPER_PATH)
+
+    # Immediate Sway runtime update
+    sway_updated = apply_sway_runtime(CANONICAL_WALLPAPER_PATH)
+
+    if sway_updated:
+        print(f"OK: Wallpaper applicato alla sessione Sway e reso persistente ({pixbuf.get_width()}x{pixbuf.get_height()}).")
+    else:
+        print(f"OK: Wallpaper persistente aggiornato ({pixbuf.get_width()}x{pixbuf.get_height()}). Sessione Sway non attiva: runtime saltato.")
+
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Gestore wallpaper per Fedora Workstation (Sway e swaylock).")
+    parser.add_argument('image', nargs='?', help="Percorso del file immagine da impostare come sfondo.")
+    parser.add_argument('--check', action='store_true', help="Verifica l'integrità e la presenza del wallpaper canonico.")
+    parser.add_argument('--current', action='store_true', help="Mostra il percorso del wallpaper canonico corrente.")
+
+    args = parser.parse_args()
+
+    if args.check:
+        return check_current_wallpaper()
+
+    if args.current:
+        if CANONICAL_WALLPAPER_PATH.is_file():
+            print(CANONICAL_WALLPAPER_PATH)
+            return 0
+        sys.stderr.write("Nessun wallpaper canonico configurato.\n")
+        return 1
+
+    if args.image:
+        return set_wallpaper(Path(args.image))
+
+    # Interactive picker when called without arguments
+    chosen = pick_wallpaper_interactively()
+    if chosen:
+        return set_wallpaper(chosen)
+
+    return 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())
