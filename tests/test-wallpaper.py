@@ -86,6 +86,63 @@ class WallpaperTests(unittest.TestCase):
                 self.assertEqual(exit_code, 0)
                 self.assertTrue(target.is_file())
 
+    def test_ensure_wallpaper_preserves_existing_valid(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            target = Path(tmp_dir) / 'workstation-setup.jpg'
+            wallpaper.update_target_atomically(self.valid_image, target)
+            original_mtime = target.stat().st_mtime_ns
+
+            with patch.object(wallpaper, 'CANONICAL_WALLPAPER_PATH', target), \
+                 patch.object(wallpaper, 'sync_greeter_wallpaper'), \
+                 patch.object(wallpaper, 'sync_gsettings'), \
+                 patch.object(wallpaper, 'apply_sway_runtime', return_value=False):
+                code = wallpaper.ensure_wallpaper()
+                self.assertEqual(code, 0)
+                self.assertEqual(target.stat().st_mtime_ns, original_mtime)
+
+    def test_ensure_wallpaper_picks_arbitrary_named_image(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            target = Path(tmp_dir) / 'canonical/workstation-setup.jpg'
+            custom_img = Path(tmp_dir) / 'custom_wallpaper_name_123.jpg'
+            wallpaper.update_target_atomically(self.valid_image, custom_img)
+
+            with patch.object(wallpaper, 'CANONICAL_WALLPAPER_PATH', target), \
+                 patch.object(wallpaper, 'find_best_default_wallpaper', return_value=custom_img), \
+                 patch.object(wallpaper, 'sync_greeter_wallpaper'), \
+                 patch.object(wallpaper, 'sync_gsettings'), \
+                 patch.object(wallpaper, 'apply_sway_runtime', return_value=False):
+                code = wallpaper.ensure_wallpaper()
+                self.assertEqual(code, 0)
+                self.assertTrue(target.is_file())
+                self.assertEqual(target.stat().st_size, custom_img.stat().st_size)
+
+    def test_ensure_wallpaper_generates_dark_fallback_when_none_available(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            target = Path(tmp_dir) / 'canonical/workstation-setup.jpg'
+
+            with patch.object(wallpaper, 'CANONICAL_WALLPAPER_PATH', target), \
+                 patch.object(wallpaper, 'find_best_default_wallpaper', return_value=None), \
+                 patch.object(wallpaper, 'sync_greeter_wallpaper'), \
+                 patch.object(wallpaper, 'sync_gsettings'), \
+                 patch.object(wallpaper, 'apply_sway_runtime', return_value=False):
+                code = wallpaper.ensure_wallpaper()
+                self.assertEqual(code, 0)
+                self.assertTrue(target.is_file())
+                pixbuf = wallpaper.validate_image(target)
+                self.assertEqual(pixbuf.get_width(), 1920)
+                self.assertEqual(pixbuf.get_height(), 1080)
+
+    def test_find_best_default_wallpaper_prefers_repo_then_user_then_system(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            repo_dir = Path(tmp_dir) / 'repo/wallpapers'
+            repo_dir.mkdir(parents=True)
+            custom_repo_img = repo_dir / 'my_custom_photo.png'
+            wallpaper.update_target_atomically(self.valid_image, custom_repo_img)
+
+            with patch.object(wallpaper, 'find_available_wallpapers', return_value=[custom_repo_img]):
+                chosen = wallpaper.find_best_default_wallpaper()
+                self.assertEqual(chosen, custom_repo_img)
+
 
 if __name__ == '__main__':
     unittest.main()

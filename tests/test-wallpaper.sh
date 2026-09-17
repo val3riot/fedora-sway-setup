@@ -4,6 +4,8 @@ set -Eeuo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 PYTHONDONTWRITEBYTECODE=1 python3 "$ROOT_DIR/tests/test-wallpaper.py"
+"$ROOT_DIR/bin/set-wallpaper.sh" --ensure >/dev/null
+"$ROOT_DIR/bin/workstation-wallpaper" --ensure >/dev/null
 "$ROOT_DIR/bin/set-wallpaper.sh" --check >/dev/null
 "$ROOT_DIR/bin/workstation-wallpaper" --check >/dev/null
 

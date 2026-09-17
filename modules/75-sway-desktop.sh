@@ -17,9 +17,7 @@ command_exists sway || die "sway non disponibile dopo l'installazione."
 
 install -d "$HOME/.local/share/workstation-setup/themes/dark"
 install -m 0644 "$ROOT_DIR/templates/themes/dark/"* "$HOME/.local/share/workstation-setup/themes/dark/"
-if [[ ! -f "$HOME/.local/share/backgrounds/workstation-setup.jpg" ]]; then
-  "$ROOT_DIR/bin/workstation-wallpaper" "$ROOT_DIR/wallpapers/mita.jpg"
-fi
+"$ROOT_DIR/bin/workstation-wallpaper" --ensure
 
 bash "$ROOT_DIR/bin/configure-sway-windows.sh"
 

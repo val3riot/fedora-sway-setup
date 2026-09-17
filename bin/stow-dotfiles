@@ -13,7 +13,6 @@ ALL_PACKAGES=(
   kitty
   sway
   swaylock
-  waybar
   systemd-user
   desktop-theme
   quickshell

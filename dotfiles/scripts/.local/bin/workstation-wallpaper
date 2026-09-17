@@ -13,6 +13,7 @@ gi.require_version('GdkPixbuf', '2.0')
 from gi.repository import GdkPixbuf, GLib
 
 
+IMAGE_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.webp', '.svg', '.jxl', '.avif')
 CANONICAL_WALLPAPER_PATH = Path.home() / '.local/share/backgrounds/workstation-setup.jpg'
 GREETER_WALLPAPER_PATH = Path('/etc/greetd/wallpaper.jpg')
 
@@ -38,15 +39,20 @@ def update_target_atomically(source_path: Path, target_path: Path) -> None:
     target_dir = target_path.parent
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    tmp_target = target_dir / f".{target_path.name}.tmp.{os.getpid()}"
-    try:
-        shutil.copyfile(source_path, tmp_target)
-        os.chmod(tmp_target, 0o644)
-        tmp_target.replace(target_path)
-    except Exception:
-        if tmp_target.exists():
-            tmp_target.unlink(missing_ok=True)
-        raise
+    if os.access(target_dir, os.W_OK):
+        tmp_target = target_dir / f".{target_path.name}.tmp.{os.getpid()}"
+        try:
+            shutil.copyfile(source_path, tmp_target)
+            os.chmod(tmp_target, 0o644)
+            tmp_target.replace(target_path)
+        except Exception:
+            if tmp_target.exists():
+                tmp_target.unlink(missing_ok=True)
+            raise
+    elif target_path.is_file() and os.access(target_path, os.W_OK):
+        shutil.copyfile(source_path, target_path)
+    else:
+        raise PermissionError(f"Permessi insufficienti per scrivere in {target_path}")
 
 
 def apply_sway_runtime(target_path: Path) -> bool:
@@ -123,9 +129,9 @@ def check_current_wallpaper() -> int:
         return 1
 
 
-def pick_wallpaper_interactively() -> Path | None:
-    """List available wallpapers in standard locations and prompt user."""
-    candidates = []
+def find_available_wallpapers() -> list[Path]:
+    """Find candidate wallpaper images across repository and standard paths."""
+    candidates: list[Path] = []
     repo_wallpapers = None
     for p in [Path(__file__).parent, Path(__file__).resolve().parent] + list(Path(__file__).resolve().parents):
         cand = p / 'wallpapers'
@@ -133,27 +139,155 @@ def pick_wallpaper_interactively() -> Path | None:
             repo_wallpapers = cand
             break
 
-    search_dirs = [
-        d for d in [
-            repo_wallpapers,
-            Path.home() / 'wallpapers',
-            Path.home() / 'Pictures/wallpapers',
-        ] if d is not None
-    ]
+    search_dirs: list[Path] = []
+    if repo_wallpapers and repo_wallpapers.is_dir():
+        search_dirs.append(repo_wallpapers)
+
+    home = Path.home()
+    for user_dir in [
+        home / 'wallpapers',
+        home / 'Pictures/wallpapers',
+        home / 'Pictures',
+        home / 'Immagini/wallpapers',
+        home / 'Immagini',
+    ]:
+        if user_dir.is_dir() and user_dir not in search_dirs:
+            search_dirs.append(user_dir)
+
+    sys_bg = Path('/usr/share/backgrounds')
+    if sys_bg.is_dir() and sys_bg not in search_dirs:
+        search_dirs.append(sys_bg)
 
     for s_dir in search_dirs:
-        if s_dir.is_dir():
-            for entry in sorted(s_dir.iterdir()):
-                if entry.is_file() and entry.suffix.lower() in ('.jpg', '.jpeg', '.png', '.webp', '.svg', '.jxl', '.avif'):
-                    if entry not in candidates:
-                        candidates.append(entry)
+        if s_dir == sys_bg:
+            for root, dirs, files in os.walk(s_dir):
+                rel_depth = len(Path(root).relative_to(s_dir).parts)
+                if rel_depth > 2:
+                    dirs.clear()
+                    continue
+                for f in sorted(files):
+                    f_path = Path(root) / f
+                    if f_path.suffix.lower() in IMAGE_EXTENSIONS:
+                        if f_path not in candidates:
+                            candidates.append(f_path)
+        else:
+            try:
+                for entry in sorted(s_dir.iterdir()):
+                    if entry.is_file() and entry.suffix.lower() in IMAGE_EXTENSIONS:
+                        if entry not in candidates:
+                            candidates.append(entry)
+            except (PermissionError, OSError):
+                continue
+
+    return candidates
+
+
+def find_best_default_wallpaper() -> Path | None:
+    """Find the best candidate for initial or non-interactive wallpaper setup."""
+    candidates = find_available_wallpapers()
+    if not candidates:
+        return None
+
+    repo_wallpapers = None
+    for p in [Path(__file__).parent, Path(__file__).resolve().parent] + list(Path(__file__).resolve().parents):
+        cand = p / 'wallpapers'
+        if cand.is_dir():
+            repo_wallpapers = cand
+            break
+
+    # 1. Any image in repo_wallpapers (any name, first alphabetically)
+    if repo_wallpapers and repo_wallpapers.is_dir():
+        repo_imgs = [c for c in candidates if repo_wallpapers in c.parents or c.parent == repo_wallpapers]
+        if repo_imgs:
+            return repo_imgs[0]
+
+    # 2. Any image in user home
+    home = Path.home()
+    user_imgs = [c for c in candidates if home in c.parents]
+    if user_imgs:
+        return user_imgs[0]
+
+    # 3. From system backgrounds, prefer dark variants if available
+    sys_imgs = [c for c in candidates if Path('/usr/share/backgrounds') in c.parents or c.parent == Path('/usr/share/backgrounds')]
+    for c in sys_imgs:
+        name_lower = c.name.lower()
+        if 'dark' in name_lower or 'night' in name_lower:
+            return c
+
+    if sys_imgs:
+        return sys_imgs[0]
+
+    return candidates[0]
+
+
+def generate_fallback_wallpaper(target_path: Path) -> Path:
+    """Generate a clean minimalist dark wallpaper matching the desktop theme (#111111)."""
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_target = target_path.parent / f".{target_path.name}.tmp.{os.getpid()}"
+    try:
+        pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, False, 8, 1920, 1080)
+        pixbuf.fill(0x111111ff)
+        pixbuf.savev(str(tmp_target), 'jpeg', ['quality'], ['90'])
+        os.chmod(tmp_target, 0o644)
+        tmp_target.replace(target_path)
+        return target_path
+    except Exception:
+        if tmp_target.exists():
+            tmp_target.unlink(missing_ok=True)
+        raise
+
+
+def ensure_wallpaper() -> int:
+    """Ensure a valid canonical wallpaper is configured.
+
+    Preserves an existing valid canonical wallpaper. If missing or invalid,
+    selects the best available candidate or generates a dark fallback.
+    Never fails if an image cannot be found.
+    """
+    if CANONICAL_WALLPAPER_PATH.is_file():
+        try:
+            pixbuf = validate_image(CANONICAL_WALLPAPER_PATH)
+            sync_greeter_wallpaper(CANONICAL_WALLPAPER_PATH)
+            sync_gsettings(CANONICAL_WALLPAPER_PATH)
+            apply_sway_runtime(CANONICAL_WALLPAPER_PATH)
+            print(f"OK: Wallpaper canonico già configurato: {CANONICAL_WALLPAPER_PATH} ({pixbuf.get_width()}x{pixbuf.get_height()}).")
+            return 0
+        except Exception:
+            sys.stderr.write(f"Avviso: wallpaper canonico presente ma non valido ({CANONICAL_WALLPAPER_PATH}), rigenerazione in corso...\n")
+
+    best = find_best_default_wallpaper()
+    if best is not None:
+        try:
+            res = set_wallpaper(best)
+            if res == 0:
+                return 0
+        except Exception as err:
+            sys.stderr.write(f"Avviso: impossibile applicare il wallpaper {best}: {err}\n")
+
+    # Generate fallback
+    try:
+        generate_fallback_wallpaper(CANONICAL_WALLPAPER_PATH)
+        sync_greeter_wallpaper(CANONICAL_WALLPAPER_PATH)
+        sync_gsettings(CANONICAL_WALLPAPER_PATH)
+        apply_sway_runtime(CANONICAL_WALLPAPER_PATH)
+        print(f"OK: Generato wallpaper predefinito tema scuro: {CANONICAL_WALLPAPER_PATH} (1920x1080).")
+        return 0
+    except Exception as err:
+        sys.stderr.write(f"Errore generazione wallpaper di fallback: {err}\n")
+        return 1
+
+
+def pick_wallpaper_interactively() -> Path | None:
+    """List available wallpapers in standard locations and prompt user."""
+    candidates = find_available_wallpapers()
 
     if not candidates:
         sys.stderr.write("Nessun wallpaper trovato nelle cartelle predefinite.\n")
+        sys.stderr.write("Puoi copiare le tue immagini in 'wallpapers/', '~/wallpapers' o '~/Pictures'.\n")
         return None
 
     if not sys.stdin.isatty():
-        sys.stderr.write("Uso: workstation-wallpaper /percorso/a/immagine.jpg\n")
+        sys.stderr.write("Uso: workstation-wallpaper /percorso/a/immagine.jpg (oppure usa --ensure in modalità non interattiva)\n")
         return None
 
     print("Scegli il wallpaper da applicare:")
@@ -216,6 +350,7 @@ def main() -> int:
     parser.add_argument('image', nargs='?', help="Percorso del file immagine da impostare come sfondo.")
     parser.add_argument('--check', action='store_true', help="Verifica l'integrità e la presenza del wallpaper canonico.")
     parser.add_argument('--current', action='store_true', help="Mostra il percorso del wallpaper canonico corrente.")
+    parser.add_argument('--ensure', action='store_true', help="Assicura che un wallpaper canonico valido sia configurato (non fallisce mai).")
 
     args = parser.parse_args()
 
@@ -228,6 +363,9 @@ def main() -> int:
             return 0
         sys.stderr.write("Nessun wallpaper canonico configurato.\n")
         return 1
+
+    if args.ensure:
+        return ensure_wallpaper()
 
     if args.image:
         return set_wallpaper(Path(args.image))
