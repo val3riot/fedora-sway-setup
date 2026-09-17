@@ -8,7 +8,10 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'templates/quickshell/services'))
+QS_SERVICES = ROOT / 'dotfiles/quickshell/.config/quickshell/workstation/services'
+if not QS_SERVICES.exists():
+    QS_SERVICES = ROOT / 'templates/quickshell/services'
+sys.path.insert(0, str(QS_SERVICES))
 import wifi
 import network
 from network import NM

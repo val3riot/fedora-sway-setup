@@ -10,14 +10,8 @@ command_exists infocmp || die "infocmp non disponibile dopo l'installazione di n
 infocmp -x xterm-kitty >/dev/null 2>&1 ||
   die "Il terminfo locale xterm-kitty non è disponibile."
 
-target="$HOME/.config/kitty/kitty.conf"
-install_managed_config "$ROOT_DIR/templates/kitty.conf" "$target" '# workstation-setup: managed kitty config'
+"$ROOT_DIR/bin/stow-dotfiles" apply kitty scripts
 if [[ ! -e "$HOME/.config/kitty/theme.conf" ]]; then
   install -m 0644 "$ROOT_DIR/templates/themes/dark/kitty.conf" "$HOME/.config/kitty/theme.conf"
 fi
-log "Kitty configurato in $target"
-
-install -m 0755 \
-  "$ROOT_DIR/bin/install-kitty-terminfo-remote" \
-  "$HOME/.local/bin/install-kitty-terminfo-remote"
-log "Helper terminfo remoto installato in $HOME/.local/bin/install-kitty-terminfo-remote"
+log "Kitty e helper terminfo configurati tramite GNU Stow"

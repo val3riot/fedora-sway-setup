@@ -11,3 +11,10 @@ config/local.env
 *.pfx
 *.ovpn
 
+# Cache Python generate localmente
+__pycache__/
+*.py[cod]
+
+# Wallpaper locali (non distribuiti dal repository)
+/wallpapers/*
+!/wallpapers/README.md

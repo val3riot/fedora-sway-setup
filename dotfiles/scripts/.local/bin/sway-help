@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+entries=$(cat <<'EOF'
+Super+D                 Launcher applicazioni (Fuzzel)
+Super+G                 Cerca questa guida dei comandi
+Super+Invio             Apri Kitty
+Super+Shift+Q           Chiudi la finestra attiva
+Super+H/J/K/L           Sposta il focus
+Super+Shift+H/J/K/L     Sposta la finestra
+Super+1…9               Vai al workspace
+Super+Shift+1…9         Sposta finestra al workspace
+Super+F                 Schermo intero
+Super+Shift+Spazio      Alterna tiling/floating
+Super+Spazio            Cambia focus tiling/floating
+Super+R                 Modalità ridimensionamento
+Super+Shift+C           Ricarica configurazione Sway
+Super+Shift+E           Esci dalla sessione Sway
+Print                   Screenshot area negli appunti
+Super+Shift+X           Blocca lo schermo
+EOF
+)
+
+if command -v fuzzel >/dev/null 2>&1 && [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+  selected="$(printf '%s\n' "$entries" | fuzzel --dmenu --prompt='Comandi Sway > ' --width=62 --lines=16)" || exit 0
+else
+  printf '%s\n' "$entries"
+  exit 0
+fi
+
+[[ -n "$selected" ]] || exit 0
+if command -v wl-copy >/dev/null 2>&1; then
+  printf '%s' "$selected" | wl-copy
+fi
+if command -v notify-send >/dev/null 2>&1; then
+  notify-send 'Comando Sway' "$selected"
+fi

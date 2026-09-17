@@ -1,150 +1,75 @@
-# Provenienza del software
+# Provenienza del software — Fedora Sway Setup
 
-Il setup usa, in ordine di preferenza, repository Fedora, repository del vendor e
-release upstream ufficiali. Gli URL sono definiti in `config/sources.env`; versioni
-e checksum sono definiti in `config/versions.env`.
+Questo repository gestisce esclusivamente l'ambiente desktop Wayland basato su Sway per Fedora 44.
+Tutti gli strumenti di sviluppo (Java, Node, Python), infrastruttura (Docker, KVM/libvirt, Tailscale) e agenti AI (Codex, Claude, Copilot) sono gestiti nel repository separato **`fedora-workstation-tools`** (`~/Progetti/personali/fedora-workstation-tools/AUDIT.md`).
 
-## Software Fedora
+---
 
-I seguenti componenti sono installati con DNF dai repository Fedora:
+## 1. Software Fedora Official (RPM)
 
-| Categoria | Software |
+I seguenti componenti sono installati tramite DNF dai repository ufficiali Fedora (`fedora`, `updates`) e verificati tramite le chiavi GPG di sistema del Fedora Project:
+
+| Categoria | Pacchetti RPM |
 |---|---|
-| Sistema e shell | Git, Zsh, OpenSSH, Kitty, tmux, Gitk |
-| Plugin Zsh | `zsh-syntax-highlighting`, `zsh-autosuggestions` |
-| Sviluppo | compilatori, strumenti di build, Python, TeX Live medium |
-| Rete | `cifs-utils`, OpenVPN, OpenConnect |
-| Desktop | Thunderbird, LibreOffice, Dash to Dock; Sway, Waybar, Fuzzel e componenti Wayland opzionali |
-| Virtualizzazione | KVM/QEMU, libvirt, virt-manager, Vagrant |
-| Alimentazione | TuneD e supporto `intel_pstate` |
+| **Sistema e shell** | `git-core`, `zsh`, `zsh-syntax-highlighting`, `zsh-autosuggestions`, `openssh-clients` |
+| **Terminale** | `kitty` |
+| **Window Manager & Compositor** | `sway`, `sway-config-fedora`, `swaylock`, `swayidle` |
+| **Barre e selettori** | `quickshell`, `waybar`, `fuzzel` |
+| **Cattura e clipboard** | `grim`, `slurp`, `wl-clipboard` |
+| **Audio e periferiche** | `pipewire`, `pipewire-pulseaudio`, `wireplumber`, `bluez`, `NetworkManager` |
+| **Display Manager** | `greetd` |
+| **Gestione Energetica** | `tuned`, `tuned-ppd` |
+| **Librerie e bridge** | `python3-gobject`, `NetworkManager-libnm`, `qt6-qtdeclarative`, `qt6-qtquick3d` |
 
-Gli RPM Fedora sono verificati da DNF con le chiavi configurate dal sistema.
+---
 
-## Release e installer verificati
+## 2. Release Upstream Verificate (Digest Statico)
 
-| Software | Versione | Fonte | Verifica |
-|---|---:|---|---|
-| Oh My Zsh | commit `d42209f2afa8ec3e6971e5b4695ff27f9d5670d2` | `ohmyzsh/ohmyzsh` | commit e SHA-256 installer |
-| Starship | 1.26.0 | release GitHub `starship/starship` | SHA-256 archivio |
-| NVM | 0.40.6 | `nvm-sh/nvm` | versione e SHA-256 installer |
-| Miniconda | py314_26.5.3-2 | Anaconda | versione e SHA-256 installer |
-| Codex | 0.149.0 | `releases.openai.com` | versione e SHA-256 bootstrap; checksum release verificato dall'installer |
-| Claude Code | 2.1.239 | `claude.ai` | versione e SHA-256 bootstrap; checksum release verificato dall'installer |
-| Copilot CLI | 1.0.80 | `gh.io` e release `github/copilot-cli` | versione e SHA-256 bootstrap; checksum release verificato dall'installer |
-| Cliamp | 1.63.2 | release GitHub `bjarneo/cliamp` | versione e SHA-256 binario Linux x86_64 |
-| DBeaver CE | 26.1.5 | `dbeaver.io` | versione e SHA-256 vendor |
-| Bruno | release corrente | `github.com/usebruno/bruno` | digest SHA-256 della release |
-| JetBrains Toolbox | release corrente | API JetBrains | checksum SHA-256 vendor |
+Per i componenti non distribuiti come RPM di sistema, gli artefatti vengono scaricati da release upstream ufficiali e convalidati tramite hash SHA-256 fisso definito in `config/versions.env`:
 
-Codex, Claude Code e Copilot CLI sono installati con `--agent` oppure `--all`.
-Durante i bootstrap, il setup rimuove dall'ambiente
-`GITHUB_TOKEN`, `GH_TOKEN`, `OPENAI_API_KEY` e `ANTHROPIC_API_KEY`.
-Cliamp è installato esclusivamente con `--extra`; le dipendenze opzionali
-`ffmpeg-free` e `yt-dlp` provengono dai repository Fedora.
+| Software | Versione / Commit | Fonte Upstream | Verifica |
+|---|---|---|---|
+| **Starship** | `1.26.0` | GitHub `starship/starship` release x86_64 | SHA-256 archivio verificato |
+| **BlueTUI** | `0.8.1` | GitHub `pythops/bluetui` release x86_64 | SHA-256 binario verificato |
+| **Oh My Zsh** | Commit `d42209f2afa8ec3e6971e5b4695ff27f9d5670d2` | GitHub `ohmyzsh/ohmyzsh` | Commit fisso + SHA-256 installer |
 
-## Repository vendor
+Nessun download viene eseguito senza validazione SHA-256 preventiva. Non sono ammesse deroghe alle verifiche crittografiche o esecuzioni non verificate.
 
-| Software | Repository | Verifica |
-|---|---|---|
-| Docker Engine CE, Buildx, Compose V2 | Docker Fedora | chiave GPG e fingerprint Docker |
-| Visual Studio Code | Microsoft RPM | chiave GPG Microsoft |
+---
 
-Docker Engine viene sempre configurato in modalità rootless dal profilo `--dev`.
+## 3. Quickshell: Dettaglio Provenienza e Sicurezza
 
-## Flatpak
+- **Pacchetto**: `quickshell-0.2.1^git20260209.dacfa9d-5.fc44.x86_64`
+- **Distributore**: Fedora Project (nessun repository COPR di terze parti come `errornointernet/quickshell` viene abilitato).
+- **Integrità binario**: validata con `rpm -V quickshell`.
+- **Compatibilità ABI**: il modulo di setup e il doctor verificano il loader dinamico con `LD_BIND_NOW=1 quickshell --version`.
+- **Supervisione**: gestito da `systemd --user` (`workstation-bar.service`). In caso di anomalia o arresto anomalo di Quickshell, il servizio esegue automaticamente il fallback sulla barra standard **Waybar**.
 
-Discord e Obsidian sono installati per il singolo utente da Flathub. Flathub è un
-repository comunitario e viene dichiarato esplicitamente come fonte di terza parte.
+---
 
-## Controlli
+## 4. Politica Repository di Terze Parti e COPR
+
+- **COPR**: Nessun repository COPR è abilitato o richiesto.
+- **Repository Vendor esterni**: Nessun repository RPM di terze parti (Microsoft, Docker, ecc.) è configurato in questo repository.
+- **Flatpak**: Nessuna applicazione Flatpak è installata dallo script di setup desktop (applicazioni utente gestite separatamente da `fedora-workstation-tools`).
+
+---
+
+## 5. Script di Controllo e Verifica
 
 ```bash
+# Esegue l'intera suite di test del repository
 ./bin/test.sh
+
+# Diagnostica rapida dello stato desktop (< 2 secondi)
+./bin/doctor.sh
+
+# Controllo locale della provenienza di binari e pacchetti RPM
 ./bin/provenance-audit.sh
-./bin/audit-urls.sh --online
+
+# Convalida classificazione e raggiungibilità degli endpoint URL
+./bin/audit-urls.sh [--online]
+
+# Controllo assenza token, chiavi o segreti tracciati
 ./bin/check-secrets.sh
 ```
-
-`bin/test.sh` controlla sintassi, ShellCheck, test funzionali, policy delle fonti,
-segreti tracciati e disabilitazioni TLS/GPG. `bin/provenance-audit.sh` verifica
-proprietario RPM, path degli eseguibili, repository configurati e duplicati nel
-`PATH`.
-
-## Quickshell opzionale — verifica 2026-09-06
-
-Fonti ufficiali consultate: [installazione upstream](https://quickshell.org/docs/v0.2.1/guide/install-setup/)
-e [pacchetto Fedora 44](https://packages.fedoraproject.org/pkgs/quickshell/quickshell/fedora-44.html).
-Gli URL sono centralizzati per i controlli in `config/sources.env`.
-La guida upstream cita ancora Rawhide e propone anche il COPR
-`errornointernet/quickshell`. Quest'ultimo è **upstream-recommended, non Fedora
-official**. Il registro Fedora e `dnf --repo=fedora --repo=updates repoquery`
-confermano però il pacchetto nei repository ufficiali Fedora 44: viene preferito
-questo e non viene aggiunto alcun COPR, fork o installer esterno.
-
-Pacchetto rilevato in updates: `quickshell-0.2.1^git20260209.dacfa9d-5.fc44.x86_64`;
-eseguibile: `quickshell 0.2.1`, revisione
-`dacfa9de829ac7cb173825f593236bf2c21f637e`, distributore Fedora Project.
-Non si blocca una release RPM. Quickshell usa API private Qt: le dipendenze
-RPM non garantiscono da sole la compatibilità tra patch release; il modulo
-verifica anche il loader con `LD_BIND_NOW=1 quickshell --version`. La transazione del modulo 76
-limita **anche le dipendenze** a `fedora` e `updates`. Nessuna deroga TLS/GPG.
-Pacchetti aggiuntivi: `python3-gobject`, `NetworkManager-libnm`, anch'essi Fedora.
-Vendor inatteso o eseguibile che maschera `/usr/bin/quickshell` causano arresto;
-audit e doctor verificano ownership, vendor e integrità `rpm -V` quando selezionato.
-
-Gli adapter usano dati kernel locali, Sway IPC e NetworkManager D-Bus. Il
-selettore Wi-Fi esegue solo azioni esplicite via libnm (toggle, scan, attivazione).
-Non riceve password: nuove reti protette/nascoste passano al tool NetworkManager.
-Bluetooth usa l'API nativa Quickshell/BlueZ; PIN e conferme sono delegati a un
-BlueTUI ufficiale avviato esplicitamente in Kitty floating. Nessun endpoint remoto o polling di comandi esterni.
-Audio tramite oggetti nativi PipeWire con tracking, default output/input e mute.
-Le API sono state confrontate con i qmltypes dell'RPM installato e la documentazione
-ufficiale versionata; URL in config/sources.env. Il doctor è in sola lettura,
-la modalità test blocca mutazioni reali dei servizi. Forget richiede conferma,
-discovery è temporanea e non altera una sessione preesistente.
-Il solo helper power esegue comandi fissi dopo un click esplicito sul menu; la
-modalità `WORKSTATION_QUICKSHELL_TEST=1` impedisce ogni azione, anche chiamando
-l'helper direttamente. NotificationServer Quickshell globale attivo; policykit resta separato.
-Corpo notifiche sanitizzato con subset b/i/u e StyledText, azioni native e immagini locali;
-nessun corpo delle notifiche scritto su disco. Ownership osservata via segnali
-D-Bus. Mako resta installato, con autostart/attivazione disabilitati e rollback
-esplicito tramite workstation-notifications.py. Il comando migra solo il
-proprietario Mako verificato; non termina daemon al login. Bluetooth delega i nuovi
-pairing alla TUI, senza tentativi QML o apertura automatica del manager GUI.
-
-Validazione finale sulla workstation: Quickshell RPM ufficiale installato,
-Qt allineato a 6.11.2 tramite DNF (transazione 22), integrità RPM e librerie
-caricate da /usr/lib64 verificate. Standalone e servizio caricano la
-configurazione reale; il fallback Waybar è stato provato e poi Quickshell
-ripristinato. Doctor Quickshell e suite repository passano. Dettagli del
-mismatch Qt 6.11.1 e delle verifiche in
-`docs/quickshell-qt-abi-2026-09-06.md`.
-
-
-## BlueTUI e utility di sistema — 2026-09-06
-
-BlueTUI 0.8.1: upstream ufficiale https://github.com/pythops/bluetui,
-release v0.8.1 del 2026-01-17; upstream attivo (commit 2026-08-28).
-DNF repoquery limitato a Fedora 44 fedora/updates: nessun pacchetto BlueTUI.
-Classificazione: **official upstream release binary**, non RPM Fedora.
-Asset musl x86_64/aarch64 e SHA-256 pubblicati dal progetto, fissati in
-config/sources.env (URL) e config/versions.env (versione/digest); installer `bin/install-bluetui.sh`, binario user-local,
-ricevuta digest in ~/.local/share/workstation-setup/bluetui.sha256.
-Il binario x86_64 è static PIE; dipendenza runtime BlueZ D-Bus, terminale Kitty
-Fedora esistente. Nessuna installazione privilegiata, COPR o fork. Nessuna firma
-indipendente rivendicata. Doctor controlla digest, launcher e regole senza lanciare
-TUI, scan o pairing. I file personali non riconosciuti vengono preservati.
-
-L'agente BlueTUI gestisce PIN, passkey e conferma numerica per le proprie
-operazioni (request_default=false). Nessun passcode viene passato a shell,
-environment o log del setup. Il suo refresh D-Bus di un secondo resta confinato
-alla finestra temporanea; nessun polling di comandi nella shell. Nessuna modifica
-a pairing/trusted durante installazione o test automatici. Il manager GUI resta
-manuale. BlueTUI 0.8.1 non espone colori configurabili né un agente generale per
-ogni forma di autorizzazione BlueZ; non viene patchato.
-
-Notifiche: toast Overlay senza keyboard focus; quick settings Top layer-shell.
-Il sanitizer consente solo b/i/u e interruzioni di riga, normalizza heading ed
-entità e non inoltra attributi o URL al renderer. Capability body-markup coerente;
-body-hyperlinks/body-images false. I test isolati controllano pixel, focus e
-fullscreen senza operazioni sui dispositivi reali.

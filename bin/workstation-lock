@@ -1,7 +1,1 @@
-#!/usr/bin/env bash
-set -Eeuo pipefail
-
-state_file="${XDG_STATE_HOME:-$HOME/.local/state}/workstation-setup/theme"
-[[ -r "$state_file" ]] && read -r theme < "$state_file" || theme=dark
-[[ "$theme" == light ]] && color=f4f0e6 || color=1a1b26
-exec swaylock -f -c "$color"
+../dotfiles/scripts/.local/bin/workstation-lock

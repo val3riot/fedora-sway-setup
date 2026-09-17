@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+usage() {
+  cat <<'USAGE'
+Uso: install-kitty-terminfo-remote TARGET_SSH
+
+Installa xterm-kitty in ~/.terminfo sull'host indicato usando OpenSSH standard.
+TARGET_SSH può essere un hostname, user@hostname o un alias di ~/.ssh/config.
+USAGE
+}
+
+die() {
+  printf 'ERRORE: %s\n' "$*" >&2
+  exit 1
+}
+
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+  usage
+  exit 0
+fi
+
+(( $# == 1 )) || { usage >&2; exit 2; }
+target=$1
+[[ -n "$target" && "$target" != -* ]] || die "Target SSH non valido: ${target:-<vuoto>}"
+
+command -v infocmp >/dev/null 2>&1 ||
+  die "infocmp non disponibile localmente; installa il pacchetto ncurses."
+
+ssh_bin="$(type -P ssh || true)"
+[[ -n "$ssh_bin" && -x "$ssh_bin" ]] || die "Client ssh non trovato nel PATH."
+ssh_version="$("$ssh_bin" -V 2>&1 || true)"
+[[ "$ssh_version" == OpenSSH_* ]] ||
+  die "Il client rilevato non è OpenSSH: $ssh_bin (${ssh_version:-versione non rilevata})"
+
+terminfo_source="$(infocmp -x xterm-kitty 2>/dev/null)" ||
+  die "infocmp non riesce a leggere xterm-kitty; installa kitty-terminfo."
+[[ -n "$terminfo_source" ]] || die "La definizione locale xterm-kitty è vuota."
+
+printf 'Installazione di xterm-kitty per %s tramite %s\n' "$target" "$ssh_bin"
+# Il blocco è interpretato dalla shell remota, non da questa shell locale.
+# shellcheck disable=SC2016
+printf '%s\n' "$terminfo_source" | "$ssh_bin" -- "$target" '
+  set -eu
+  command -v tic >/dev/null 2>&1 || {
+    printf "%s\n" "ERRORE: tic non è disponibile sul sistema remoto; installare il pacchetto ncurses/terminfo della distribuzione." >&2
+    exit 127
+  }
+  mkdir -p "$HOME/.terminfo"
+  tic -x -o "$HOME/.terminfo" /dev/stdin
+  if command -v infocmp >/dev/null 2>&1; then
+    TERMINFO="$HOME/.terminfo" infocmp -x xterm-kitty >/dev/null 2>&1 || {
+      printf "%s\n" "ERRORE: verifica remota di xterm-kitty non riuscita." >&2
+      exit 1
+    }
+  fi
+'
+
+printf 'OK: xterm-kitty installato in ~/.terminfo su %s\n' "$target"
+printf 'Ora puoi collegarti normalmente con: ssh %s\n' "$target"

@@ -1,0 +1,11 @@
+# workstation-setup: managed greetd configuration
+[terminal]
+# The VT to run the greeter on
+vt = 1
+
+[default_session]
+# Launch Sway compositor with dedicated minimal greeter configuration
+command = "sway --config /etc/greetd/sway-config"
+
+# Dedicated system greeter user
+user = "greetd"

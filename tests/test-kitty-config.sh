@@ -2,7 +2,8 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-config="$ROOT_DIR/templates/kitty.conf"
+config="$ROOT_DIR/dotfiles/kitty/.config/kitty/kitty.conf"
+[[ -f "$config" ]] || config="$ROOT_DIR/templates/kitty.conf"
 copy_all='map ctrl+shift+a launch --stdin-source=@screen_scrollback --type=clipboard'
 
 [[ "$(grep -Fxc "$copy_all" "$config")" == 1 ]]
@@ -12,7 +13,7 @@ if grep -Eiq '^[[:space:]]*map[[:space:]]+ctrl\+a([[:space:]]|$)' "$config"; the
 fi
 [[ "$(grep -Fxc 'map ctrl+shift+c copy_to_clipboard' "$config")" == 1 ]]
 [[ "$(grep -Fxc 'map ctrl+shift+v paste_from_clipboard' "$config")" == 1 ]]
-[[ "$(grep -Fxc 'background_opacity 0.92' "$config")" == 1 ]]
+[[ "$(grep -Fxc 'background_opacity 0.85' "$config")" == 1 ]]
 if grep -Eiq '(^|[[:space:]])(xclip|xsel|wl-copy)([[:space:]]|$)' "$config"; then
   exit 1
 fi

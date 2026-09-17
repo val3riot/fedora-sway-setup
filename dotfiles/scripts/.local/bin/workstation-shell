@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+# workstation-setup: managed desktop actions
+"""Route fixed desktop actions to Quickshell, preserving previous bar fallback."""
+import argparse
+from pathlib import Path
+import subprocess
+
+FALLBACK = {
+    'launcher': [str(Path.home() / '.local/bin/workstation-app-menu')],
+    'volume-up': ['wpctl', 'set-volume', '-l', '1', '@DEFAULT_AUDIO_SINK@', '5%+'],
+    'volume-down': ['wpctl', 'set-volume', '@DEFAULT_AUDIO_SINK@', '5%-'],
+    'mute': ['wpctl', 'set-mute', '@DEFAULT_AUDIO_SINK@', 'toggle'],
+    'mic-mute': ['wpctl', 'set-mute', '@DEFAULT_AUDIO_SOURCE@', 'toggle'],
+    'brightness-up': ['brightnessctl', '-c', 'backlight', 'set', '+5%'],
+    'brightness-down': ['brightnessctl', '-c', 'backlight', 'set', '5%-'],
+}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('action', choices=[*FALLBACK, 'clipboard', 'close', 'mic-up', 'mic-down'])
+    action = parser.parse_args().action
+    try:
+        result = subprocess.run(['quickshell', 'ipc', '--path', str(Path.home() / '.config/quickshell/workstation'),
+                                 'call', 'desktop', 'action', action], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=3)
+        if result.returncode == 0: return 0
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    if action in FALLBACK:
+        return subprocess.call(FALLBACK[action])
+    return 1
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

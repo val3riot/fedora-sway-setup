@@ -7,30 +7,12 @@ sudo -n true
 sudo timedatectl set-timezone Europe/Rome
 sudo timedatectl set-ntp true
 
-if [[ "$PROFILE" != dev ]]; then
-  sudo dnf upgrade --refresh -y
-fi
+sudo dnf upgrade --refresh -y
 
-base_packages=(
-  git gitk git-lfs openssh-clients curl wget rsync
-  unzip zip tar gzip bzip2 xz jq tree
+desktop_base_packages=(
+  git openssh-clients curl wget rsync
+  unzip zip tar gzip bzip2 xz jq stow
   zsh bash-completion xdg-user-dirs
-  cifs-utils
 )
 
-[[ "$PROFILE" != dev ]] && install_available_packages "${base_packages[@]}"
-
-[[ "$PROFILE" != base ]] || exit 0
-
-dev_packages=(
-  git curl wget jq gnupg2 ripgrep fd-find fzf bat btop htop tmux ShellCheck
-  gcc gcc-c++ make cmake ninja-build pkgconf-pkg-config
-  openssl-devel libffi-devel zlib-ng-compat-devel
-  gdb strace lsof
-  pciutils usbutils iproute bind-utils traceroute nmap-ncat
-)
-
-install_available_packages "${dev_packages[@]}"
-install_available_packages \
-  texlive-scheme-medium openvpn openconnect \
-  NetworkManager-openvpn NetworkManager-openconnect
+install_available_packages "${desktop_base_packages[@]}"

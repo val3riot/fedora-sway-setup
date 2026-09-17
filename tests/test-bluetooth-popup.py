@@ -15,10 +15,16 @@ def main():
     with tempfile.TemporaryDirectory(prefix='bluetooth-popup-') as tmp:
         work = Path(tmp)
         runtime = work / 'runtime'; runtime.mkdir(mode=0o700)
-        config = work / 'config'; shutil.copytree(ROOT / 'templates/quickshell', config)
+        qs_src = ROOT / 'dotfiles/quickshell/.config/quickshell/workstation'
+        if not qs_src.exists():
+            qs_src = ROOT / 'templates/quickshell'
+        config = work / 'config'; shutil.copytree(qs_src, config)
         shutil.copyfile(ROOT / 'tests/fixtures/quickshell/bluetooth-popup.qml', config / 'shell.qml')
+        sway_util = ROOT / 'dotfiles/sway/.config/sway/config.d/62-system-utilities.conf'
+        if not sway_util.exists():
+            sway_util = ROOT / 'templates/sway/config.d/62-system-utilities.conf'
         sway_config = work / 'sway.conf'
-        sway_config.write_text('output * resolution 1280x720\nseat seat0 fallback true\ninclude ' + str(ROOT / 'templates/sway/config.d/62-system-utilities.conf') + '\n')
+        sway_config.write_text('output * resolution 1280x720\nseat seat0 fallback true\ninclude ' + str(sway_util) + '\n')
         env = dict(os.environ, XDG_RUNTIME_DIR=str(runtime), WLR_BACKENDS='headless', WLR_HEADLESS_OUTPUTS='1',
                    WLR_LIBINPUT_NO_DEVICES='1', WORKSTATION_QUICKSHELL_TEST='1', QT_QPA_PLATFORM='wayland')
         env.pop('SWAYSOCK', None); env.pop('I3SOCK', None)

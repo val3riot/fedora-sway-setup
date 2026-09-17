@@ -18,7 +18,10 @@ def main():
                                 '/usr/bin/python3', __file__])
     with tempfile.TemporaryDirectory(prefix='notification-protocol-') as tmp:
         config = Path(tmp) / 'config'
-        shutil.copytree(ROOT / 'templates/quickshell', config)
+        qs_src = ROOT / 'dotfiles/quickshell/.config/quickshell/workstation'
+        if not qs_src.exists():
+            qs_src = ROOT / 'templates/quickshell'
+        shutil.copytree(qs_src, config)
         shutil.copyfile(ROOT / 'tests/fixtures/quickshell/notification-server.qml', config / 'shell.qml')
         env = dict(os.environ, QT_QPA_PLATFORM='offscreen', WORKSTATION_QUICKSHELL_TEST='1',
                    WORKSTATION_NOTIFICATION_TEST_BUS='1', WORKSTATION_NOTIFICATIONS='quickshell')

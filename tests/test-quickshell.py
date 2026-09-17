@@ -9,14 +9,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def module(name, path):
-    spec = importlib.util.spec_from_file_location(name, ROOT / path)
+    file_path = ROOT / path if not Path(path).is_absolute() else Path(path)
+    spec = importlib.util.spec_from_file_location(name, file_path)
     obj = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(obj)
     return obj
 
 
-stats = module('stats', 'templates/quickshell/services/stats.py')
-occupancy = module('occupancy', 'templates/quickshell/services/occupancy.py')
+QS_DIR = ROOT / 'dotfiles/quickshell/.config/quickshell/workstation' if (ROOT / 'dotfiles/quickshell/.config/quickshell/workstation').exists() else ROOT / 'templates/quickshell'
+SWAY_CONF = ROOT / 'dotfiles/sway/.config/sway/config' if (ROOT / 'dotfiles/sway/.config/sway/config').exists() else ROOT / 'templates/sway/config'
+stats = module('stats', QS_DIR / 'services/stats.py')
+occupancy = module('occupancy', QS_DIR / 'services/occupancy.py')
 
 
 class Statistics(unittest.TestCase):
@@ -120,12 +123,12 @@ class Migration(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
 
     def test_current_sway_template_migrates_after_rerun(self):
-        self.config.write_bytes((ROOT / 'templates/sway/config').read_bytes())
+        self.config.write_bytes(SWAY_CONF.read_bytes())
         self.configure()
         first = self.config.read_bytes()
         self.assertNotIn('exec --no-startup-id mako', first.decode())
         self.assertNotIn('exec --no-startup-id waybar', first.decode())
-        self.config.write_bytes((ROOT / 'templates/sway/config').read_bytes())
+        self.config.write_bytes(SWAY_CONF.read_bytes())
         self.configure()
         self.assertEqual(first, self.config.read_bytes())
 
@@ -155,7 +158,7 @@ class CliAndRollback(unittest.TestCase):
             (root / 'bin').mkdir()
             (root / 'install.sh').write_bytes((ROOT / 'install.sh').read_bytes())
             (root / 'lib/common.sh').write_text("start_sudo_keepalive() { :; }\nstop_sudo_keepalive() { :; }\nrequire_fedora_44() { :; }\nload_config() { :; }\nvalidate_config() { :; }\ncommand_exists() { return 0; }\nlog() { :; }\ndie() { echo \"$*\" >&2; exit 1; }\n")
-            for extra in ['laptop-power-mode', 'docker-runtime']:
+            for extra in ['laptop-power-mode', 'stow-dotfiles']:
                 (root / 'bin' / extra).write_text('#!/bin/bash\n')
             for name in [p.name for p in (ROOT / 'modules').glob('*.sh')]:
                 (root / 'modules' / name).write_text('echo "' + name + ' $CONFIG_QUICKSHELL" >> "$CLI_RECORD"\n')
@@ -167,16 +170,13 @@ class CliAndRollback(unittest.TestCase):
                     capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 return record.read_text()
-            standalone = run(['--config-quickshell'])
-            self.assertIn('76-quickshell.sh true', standalone)
-            self.assertNotIn('75-sway-desktop.sh', standalone)
-            self.assertNotIn('20-shell.sh', standalone)
-            combined = run(['--sway', '--config-quickshell'])
-            self.assertIn('75-sway-desktop.sh true', combined)
-            self.assertIn('76-quickshell.sh true', combined)
-            normal = run(['--sway'])
-            self.assertNotIn('76-quickshell.sh', normal)
-            self.assertIn('75-sway-desktop.sh false', normal)
+            default_run = run([])
+            self.assertIn('76-quickshell.sh true', default_run)
+            self.assertIn('75-sway-desktop.sh', default_run)
+            self.assertIn('20-shell.sh', default_run)
+            no_qs = run(['--no-quickshell'])
+            self.assertNotIn('76-quickshell.sh', no_qs)
+            self.assertIn('75-sway-desktop.sh', no_qs)
 
     def test_fallback_and_rollback(self):
         import socket

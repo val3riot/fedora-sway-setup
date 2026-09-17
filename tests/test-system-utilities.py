@@ -24,14 +24,20 @@ class SystemUtilities(unittest.TestCase):
         self.assertNotIn('sh', argv)
 
     def test_no_normal_app_floating_rule(self):
-        rule = (ROOT / 'templates/sway/config.d/62-system-utilities.conf').read_text()
+        sway_util = ROOT / 'dotfiles/sway/.config/sway/config.d/62-system-utilities.conf'
+        if not sway_util.exists():
+            sway_util = ROOT / 'templates/sway/config.d/62-system-utilities.conf'
+        rule = sway_util.read_text()
         self.assertIn('^workstation-(', rule)
         self.assertNotIn('app_id="kitty', rule)
         self.assertNotIn('workspace ', rule)
 
     def test_bt_popup_never_invokes_gui_or_pair(self):
-        service = (ROOT / 'templates/quickshell/services/BluetoothService.qml').read_text()
-        row = (ROOT / 'templates/quickshell/popups/BluetoothDeviceRow.qml').read_text()
+        qs_src = ROOT / 'dotfiles/quickshell/.config/quickshell/workstation'
+        if not qs_src.exists():
+            qs_src = ROOT / 'templates/quickshell'
+        service = (qs_src / 'services/BluetoothService.qml').read_text()
+        row = (qs_src / 'popups/BluetoothDeviceRow.qml').read_text()
         for obsolete in ('desktop-settings.py', '.pair()', 'blueman-manager', 'preparePair'):
             self.assertNotIn(obsolete, service + row)
         self.assertIn('service.manage()', row)

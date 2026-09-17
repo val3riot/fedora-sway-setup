@@ -1,0 +1,28 @@
+# workstation-setup: managed greetd sway config
+# Dedicated minimal Sway compositor for greetd greeter
+
+# Output wallpaper matching workstation theme
+output * bg /etc/greetd/wallpaper.jpg fill #16161a
+
+# Keyboard layout
+input type:keyboard {
+    xkb_layout "it,us"
+}
+
+# Screen power management on idle
+exec command -v swayidle >/dev/null && swayidle -w \
+    timeout 300 'swaymsg "output * power off"' \
+    resume 'swaymsg "output * power on"'
+
+# No XWayland needed for login greeter
+xwayland disable
+
+# Emergency / power actions shortcut
+bindsym Mod4+Shift+e exec swaynag \
+    -t warning \
+    -m 'Sessione Greeter: scegli azione' \
+    -b 'Spegni' 'systemctl poweroff' \
+    -b 'Riavvia' 'systemctl reboot'
+
+# Launch gtkgreet with layer shell and workstation theme
+exec "gtkgreet -l -s /etc/greetd/gtkgreet.css -c start-sway; swaymsg exit"

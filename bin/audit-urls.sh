@@ -15,7 +15,7 @@ case "${1:-}" in
 esac
 
 failed=0
-if rg -n 'https?://' "$ROOT_DIR/install.sh" "$ROOT_DIR/lib" "$ROOT_DIR/modules" "$ROOT_DIR/bin" "$ROOT_DIR/templates/quickshell" \
+if rg -n 'https?://' "$ROOT_DIR/install.sh" "$ROOT_DIR/lib" "$ROOT_DIR/modules" "$ROOT_DIR/bin" "$ROOT_DIR/dotfiles" \
   --glob '!**/audit-urls.sh' --glob '!**/provenance-audit.sh'; then
   printf '%s\n' 'FAIL URL runtime hardcoded fuori da config/sources.env' >&2
   failed=1

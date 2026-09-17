@@ -5,7 +5,9 @@ PYTHONDONTWRITEBYTECODE=1 python3 "$ROOT_DIR/tests/test-notification-migration.p
 command -v quickshell >/dev/null || { echo 'SKIP notification QML mocks: Quickshell assente'; exit 0; }
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-cp -r "$ROOT_DIR/templates/quickshell/." "$work/"
+qs_src="$ROOT_DIR/dotfiles/quickshell/.config/quickshell/workstation"
+[[ -d "$qs_src" ]] || qs_src="$ROOT_DIR/templates/quickshell"
+cp -r "$qs_src/." "$work/"
 cp "$ROOT_DIR/tests/fixtures/quickshell/notifications.qml" "$work/shell.qml"
 env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen WORKSTATION_QUICKSHELL_TEST=1 timeout 10 quickshell --no-color --path "$work" > "$work/log" 2>&1 || { cat "$work/log"; exit 1; }
 cat "$work/log"

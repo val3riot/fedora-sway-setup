@@ -13,7 +13,9 @@ if ! command -v quickshell >/dev/null; then
 fi
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-cp -r "$ROOT_DIR/templates/quickshell/." "$work/"
+qs_src="$ROOT_DIR/dotfiles/quickshell/.config/quickshell/workstation"
+[[ -d "$qs_src" ]] || qs_src="$ROOT_DIR/templates/quickshell"
+cp -r "$qs_src/." "$work/"
 cp "$ROOT_DIR/tests/fixtures/quickshell/selectors.qml" "$work/shell.qml"
 if ! env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen WORKSTATION_QUICKSHELL_TEST=1 timeout 15 quickshell --no-color --path "$work" > "$work/log" 2>&1; then
   cat "$work/log"; exit 1
