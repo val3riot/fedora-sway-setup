@@ -132,16 +132,24 @@ class WallpaperTests(unittest.TestCase):
                 self.assertEqual(pixbuf.get_width(), 1920)
                 self.assertEqual(pixbuf.get_height(), 1080)
 
-    def test_find_best_default_wallpaper_prefers_repo_then_user_then_system(self):
+    def test_find_available_wallpapers_only_from_wallpapers_dir(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            repo_dir = Path(tmp_dir) / 'repo/wallpapers'
+            repo_dir = Path(tmp_dir) / 'wallpapers'
             repo_dir.mkdir(parents=True)
-            custom_repo_img = repo_dir / 'my_custom_photo.png'
-            wallpaper.update_target_atomically(self.valid_image, custom_repo_img)
+            img1 = repo_dir / 'my_custom_photo.png'
+            wallpaper.update_target_atomically(self.valid_image, img1)
 
-            with patch.object(wallpaper, 'find_available_wallpapers', return_value=[custom_repo_img]):
+            # File outside wallpapers/ that should be ignored
+            outside_dir = Path(tmp_dir) / 'Pictures'
+            outside_dir.mkdir(parents=True)
+            outside_img = outside_dir / 'outside_photo.png'
+            wallpaper.update_target_atomically(self.valid_image, outside_img)
+
+            with patch.object(wallpaper, 'get_wallpapers_dir', return_value=repo_dir):
+                available = wallpaper.find_available_wallpapers()
+                self.assertEqual(available, [img1])
                 chosen = wallpaper.find_best_default_wallpaper()
-                self.assertEqual(chosen, custom_repo_img)
+                self.assertEqual(chosen, img1)
 
 
 if __name__ == '__main__':

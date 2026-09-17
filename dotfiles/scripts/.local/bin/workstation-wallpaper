@@ -129,95 +129,44 @@ def check_current_wallpaper() -> int:
         return 1
 
 
-def find_available_wallpapers() -> list[Path]:
-    """Find candidate wallpaper images across repository and standard paths."""
-    candidates: list[Path] = []
-    repo_wallpapers = None
-    for p in [Path(__file__).parent, Path(__file__).resolve().parent] + list(Path(__file__).resolve().parents):
-        cand = p / 'wallpapers'
+def get_wallpapers_dir() -> Path | None:
+    """Find the wallpapers/ directory in the repository or environment."""
+    root_env = os.environ.get('ROOT_DIR')
+    if root_env:
+        cand = Path(root_env) / 'wallpapers'
         if cand.is_dir():
-            repo_wallpapers = cand
-            break
+            return cand
 
-    search_dirs: list[Path] = []
-    if repo_wallpapers and repo_wallpapers.is_dir():
-        search_dirs.append(repo_wallpapers)
+    me = Path(__file__).resolve()
+    for parent in [me.parent] + list(me.parents):
+        cand = parent / 'wallpapers'
+        if cand.is_dir():
+            return cand
 
-    home = Path.home()
-    for user_dir in [
-        home / 'wallpapers',
-        home / 'Pictures/wallpapers',
-        home / 'Pictures',
-        home / 'Immagini/wallpapers',
-        home / 'Immagini',
-    ]:
-        if user_dir.is_dir() and user_dir not in search_dirs:
-            search_dirs.append(user_dir)
+    return None
 
-    sys_bg = Path('/usr/share/backgrounds')
-    if sys_bg.is_dir() and sys_bg not in search_dirs:
-        search_dirs.append(sys_bg)
 
-    for s_dir in search_dirs:
-        if s_dir == sys_bg:
-            for root, dirs, files in os.walk(s_dir):
-                rel_depth = len(Path(root).relative_to(s_dir).parts)
-                if rel_depth > 2:
-                    dirs.clear()
-                    continue
-                for f in sorted(files):
-                    f_path = Path(root) / f
-                    if f_path.suffix.lower() in IMAGE_EXTENSIONS:
-                        if f_path not in candidates:
-                            candidates.append(f_path)
-        else:
-            try:
-                for entry in sorted(s_dir.iterdir()):
-                    if entry.is_file() and entry.suffix.lower() in IMAGE_EXTENSIONS:
-                        if entry not in candidates:
-                            candidates.append(entry)
-            except (PermissionError, OSError):
-                continue
+def find_available_wallpapers() -> list[Path]:
+    """Find candidate wallpaper images exclusively in the wallpapers/ directory."""
+    candidates: list[Path] = []
+    wallpapers_dir = get_wallpapers_dir()
+    if wallpapers_dir and wallpapers_dir.is_dir():
+        try:
+            for entry in sorted(wallpapers_dir.iterdir()):
+                if entry.is_file() and entry.suffix.lower() in IMAGE_EXTENSIONS:
+                    candidates.append(entry)
+        except (PermissionError, OSError):
+            pass
 
     return candidates
 
 
 def find_best_default_wallpaper() -> Path | None:
-    """Find the best candidate for initial or non-interactive wallpaper setup."""
+    """Find the first available candidate in the wallpapers/ directory."""
     candidates = find_available_wallpapers()
-    if not candidates:
-        return None
-
-    repo_wallpapers = None
-    for p in [Path(__file__).parent, Path(__file__).resolve().parent] + list(Path(__file__).resolve().parents):
-        cand = p / 'wallpapers'
-        if cand.is_dir():
-            repo_wallpapers = cand
-            break
-
-    # 1. Any image in repo_wallpapers (any name, first alphabetically)
-    if repo_wallpapers and repo_wallpapers.is_dir():
-        repo_imgs = [c for c in candidates if repo_wallpapers in c.parents or c.parent == repo_wallpapers]
-        if repo_imgs:
-            return repo_imgs[0]
-
-    # 2. Any image in user home
-    home = Path.home()
-    user_imgs = [c for c in candidates if home in c.parents]
-    if user_imgs:
-        return user_imgs[0]
-
-    # 3. From system backgrounds, prefer dark variants if available
-    sys_imgs = [c for c in candidates if Path('/usr/share/backgrounds') in c.parents or c.parent == Path('/usr/share/backgrounds')]
-    for c in sys_imgs:
-        name_lower = c.name.lower()
-        if 'dark' in name_lower or 'night' in name_lower:
-            return c
-
-    if sys_imgs:
-        return sys_imgs[0]
-
-    return candidates[0]
+    if candidates:
+        return candidates[0]
+    return None
 
 
 def generate_fallback_wallpaper(target_path: Path) -> Path:
@@ -278,12 +227,12 @@ def ensure_wallpaper() -> int:
 
 
 def pick_wallpaper_interactively() -> Path | None:
-    """List available wallpapers in standard locations and prompt user."""
+    """List available wallpapers exclusively in the wallpapers/ directory and prompt user."""
     candidates = find_available_wallpapers()
 
     if not candidates:
-        sys.stderr.write("Nessun wallpaper trovato nelle cartelle predefinite.\n")
-        sys.stderr.write("Puoi copiare le tue immagini in 'wallpapers/', '~/wallpapers' o '~/Pictures'.\n")
+        sys.stderr.write("Nessun wallpaper trovato nella cartella wallpapers/.\n")
+        sys.stderr.write("Inserisci le tue immagini nella cartella 'wallpapers/' per poterle selezionare.\n")
         return None
 
     if not sys.stdin.isatty():
@@ -292,7 +241,7 @@ def pick_wallpaper_interactively() -> Path | None:
 
     print("Scegli il wallpaper da applicare:")
     for idx, cand in enumerate(candidates, start=1):
-        print(f"  {idx}) {cand.name} ({cand.parent})")
+        print(f"  {idx}) {cand.name}")
 
     while True:
         try:
