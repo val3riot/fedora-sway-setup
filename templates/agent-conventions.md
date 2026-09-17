@@ -35,9 +35,9 @@
 
 ## Note per componenti desktop specifici
 
-- Sway: `sway-help` / Super+G mostra la guida condivisa. Quickshell è la barra e
-  control center di default. Non riattivare Mako quando
-  Quickshell possiede le notifiche.
+- Sway: Guida scorciatoie nativa Quickshell via Super+G / `workstation-shell shortcuts`.
+  Quickshell è la barra, launcher, notifiche e control center di default. Rete avanzata
+  tramite `nmtui` in Kitty floating (`workstation-network`).
 - Pairing Bluetooth: BlueTUI ufficiale in `workstation-system-tool bluetooth`;
   nuovi pairing nella TUI, connect/disconnect nel popup. PipeWire gestisce l'audio.
 - Finestre normali (Kitty inclusa) tiled; solo app_id workstation-* riservati
@@ -50,9 +50,10 @@
 - Quick Settings: QS sulla barra, istanza globale sul monitor cliccato; compone
   servizi esistenti, passa ai selector e non duplica backend. Toast Overlay, QS Top.
 - Tema: `bin/configure-appearance.py` gestisce Adwaita + prefer-dark, Qt portal,
-  icone/cursore Adwaita 24px, Adwaita Sans e Cascadia Mono NF. Niente CSS globale
-  né Qt library path. Il chooser portal GTK è una utility floating dedicata.
+  icone/cursore Adwaita 24px, Adwaita Sans e Cascadia Mono NF, palette canonica
+  in `config/palette.env`. Niente CSS globale né Qt library path. Il chooser portal
+  GTK è una utility floating dedicata.
 - Dotfile utente: gestiti con GNU Stow tramite `bin/stow-dotfiles`. I file sotto
   `$HOME` sono symlink diretti ai file versionati in `dotfiles/`. Modifiche a
-  runtime su file generati (`theme.conf`, `theme.css`, `fuzzel.ini`, ecc.) restano
+  runtime su file generati (`theme.conf`, ecc.) restano
   dinamiche, mentre le configurazioni stabili risiedono esclusivamente nel repository.

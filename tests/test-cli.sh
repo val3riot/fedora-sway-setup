@@ -4,7 +4,7 @@ set -Eeuo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 help_output="$("$ROOT_DIR/install.sh" --help)"
-grep -Fq -- '--no-quickshell' <<<"$help_output"
+! grep -Fq -- '--no-quickshell' <<<"$help_output"
 grep -Fq -- '--dry-run' <<<"$help_output"
 grep -Fq -- '--doctor' <<<"$help_output"
 grep -Fq -- '--set-wallpaper' <<<"$help_output"
@@ -19,10 +19,11 @@ grep -Fq '75-sway-desktop.sh' <<<"$dry_run_default"
 grep -Fq '76-quickshell.sh' <<<"$dry_run_default"
 grep -Fq '20-shell.sh' <<<"$dry_run_default"
 
-# Test dry-run without quickshell
-dry_run_no_qs="$("$ROOT_DIR/install.sh" --dry-run --no-quickshell)"
-grep -Fq '75-sway-desktop.sh' <<<"$dry_run_no_qs"
-! grep -Fq '76-quickshell.sh' <<<"$dry_run_no_qs"
+# Test rejection of removed --no-quickshell flag
+if "$ROOT_DIR/install.sh" --no-quickshell >/dev/null 2>&1; then
+  printf '%s\n' 'FAIL atteso errore su opzione rimossa --no-quickshell' >&2
+  exit 1
+fi
 
 # Test invalid flag
 if "$ROOT_DIR/install.sh" --unsupported-flag >/dev/null 2>&1; then
@@ -40,4 +41,4 @@ grep -Fq "printf 'FAILED (%d)" "$ROOT_DIR/install.sh"
 grep -Fq 'timedatectl set-timezone Europe/Rome' "$ROOT_DIR/modules/10-system-packages.sh"
 grep -Fq 'timedatectl set-ntp true' "$ROOT_DIR/modules/10-system-packages.sh"
 
-printf '%s\n' 'OK   CLI desktop install.sh (--help, --info, --dry-run, --no-quickshell)'
+printf '%s\n' 'OK   CLI desktop install.sh (--help, --info, --dry-run)'

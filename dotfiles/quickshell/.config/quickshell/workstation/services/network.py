@@ -1,6 +1,7 @@
 """Event-driven libnm status and explicit commands; credentials never enter this process."""
 import json
 import os
+from pathlib import Path
 import shutil
 import sys
 import time
@@ -127,20 +128,24 @@ class Network:
         return GLib.SOURCE_REMOVE
 
     def configure(self):
-        tool = shutil.which('nm-connection-editor')
-        if tool:
-            process = Gio.Subprocess.new([tool, '--create', '--type=802-11-wireless'],
-                                         Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE)
+        helper = str(Path.home() / '.local/bin/workstation-network')
+        if not Path(helper).is_file():
+            helper = str(Path.home() / '.local/bin/workstation-system-tool')
+            args = [helper, 'network']
+        else:
+            args = [helper]
+        try:
+            process = Gio.Subprocess.new(args, Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE)
             def editor_closed(proc, result, *_):
                 try:
                     proc.wait_check_finish(result)
                 except GLib.Error:
-                    self.message = 'Editor NetworkManager non avviato o terminato con errore.'
+                    self.message = 'TUI di rete terminata con errore.'
                     self.schedule()
             process.wait_check_async(None, editor_closed, None)
-            self.message = 'Completa SSID, sicurezza e password nell’editor NetworkManager.'
-        else:
-            self.message = 'Configurare la rete protetta con il tool NetworkManager di sistema.'
+            self.message = 'Configura connessioni e parametri nella TUI di rete (nmtui).'
+        except GLib.Error:
+            self.message = 'Impossibile avviare la TUI NetworkManager (nmtui).'
         self.schedule()
 
     def command(self, command):

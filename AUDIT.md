@@ -13,9 +13,9 @@ I seguenti componenti sono installati tramite DNF dai repository ufficiali Fedor
 | **Sistema e shell** | `git-core`, `zsh`, `zsh-syntax-highlighting`, `zsh-autosuggestions`, `openssh-clients` |
 | **Terminale** | `kitty` |
 | **Window Manager & Compositor** | `sway`, `sway-config-fedora`, `swaylock`, `swayidle` |
-| **Barre e selettori** | `quickshell`, `fuzzel` |
+| **Barre e selettori** | `quickshell` |
 | **Cattura e clipboard** | `grim`, `slurp`, `wl-clipboard` |
-| **Audio e periferiche** | `pipewire`, `pipewire-pulseaudio`, `wireplumber`, `bluez`, `NetworkManager` |
+| **Audio e periferiche** | `pipewire`, `pipewire-pulseaudio`, `wireplumber`, `bluez`, `NetworkManager`, `NetworkManager-tui` |
 | **Display Manager** | `greetd` |
 | **Gestione Energetica** | `tuned`, `tuned-ppd` |
 | **Librerie e bridge** | `python3-gobject`, `NetworkManager-libnm`, `qt6-qtdeclarative`, `qt6-qtquick3d` |

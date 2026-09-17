@@ -69,11 +69,11 @@ Tutti i file di configurazione stabili risiedono in `dotfiles/<pacchetto>/` e ve
 - `quickshell`: `~/.config/quickshell/workstation/...` (QML shell, bar, quick settings, popups)
 - `systemd-user`: `~/.config/systemd/user/workstation-bar.service`
 - `desktop-theme`: `~/.config/gtk-3.0/settings.ini`, `gtk-4.0/settings.ini`, fontconfig
-- `scripts`: script helper in `~/.local/bin/` (`workstation-shell`, `sway-help`, `workstation-screenshot`, ecc.)
+- `scripts`: script helper in `~/.local/bin/` (`workstation-network`, `workstation-shell`, `workstation-screenshot`, ecc.)
 
-### Modifiche a Runtime
+### Modifiche a Runtime e Palette Canonica
 
-I file modificati dinamicamente dal tema (`theme.conf`, `theme.css`, `fuzzel.ini`, `90-bar.conf`, `95-notifications.conf`) vengono gestiti da `bin/configure-appearance.py` e posizionati in `$HOME/.config/` senza sovrascrivere o sporcare i file versionati da Stow.
+La palette dei colori è centralizzata in `config/palette.env` come singola sorgente di verità. Le preferenze toolkit condivise sono configurate da `bin/configure-appearance.py` (Adwaita Dark, `prefer-dark`, icone/cursori Adwaita, font Cascadia Mono NF e Adwaita Sans) garantendo coerenza estetica su GTK, Qt portal, Kitty e Quickshell senza sporcare i file versionati da Stow.
 
 ---
 
@@ -81,10 +81,11 @@ I file modificati dinamicamente dal tema (`theme.conf`, `theme.css`, `fuzzel.ini
 
 ### Gestore Finestre e Display (Sway)
 - Tiling automatico per applicazioni standard (Kitty, editor, browser).
-- Finestre floating compatte con app_id `workstation-*` per dialoghi di sistema, selettori e utilità.
+- Finestre floating compatte con app_id `workstation-*` per dialoghi di sistema, selettori e utilità (`workstation-network`, `workstation-system-tool`).
 - Greetd come display manager con sessione Sway e sfondo sincronizzato.
 - `swaylock` per blocco schermo sicuro con verifica preventiva senza freeze (`workstation-lock --check`).
-- `sway-help` (`Super+G`) come guida comandi interattiva e ricercabile.
+- Guida scorciatoie Quickshell (`Super+G` / `workstation-shell shortcuts`) con pannello interattivo nativo ricercabile.
+
 
 ### Desktop Shell (Quickshell)
 - Barra superiore minimale e reattiva scritta in Qt/QML.

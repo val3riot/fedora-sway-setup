@@ -47,7 +47,7 @@ BarPopup {
                     enabled: root.network.wifiEnabled === true && !root.network.scanning
                     onClicked: root.service.networkCommand({action: "scan"})
                 }
-                DeviceButton { text: "Rete nascosta / protetta nuova…"; onClicked: root.service.networkCommand({action: "configure"}) }
+                ActionButton { text: "Configurazione avanzata · nmtui"; onClicked: root.service.networkCommand({action: "configure"}) }
             }
         }
     }

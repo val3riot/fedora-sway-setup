@@ -18,7 +18,6 @@ DEFAULT
   Bluetooth, NetworkManager, portali XDG, tema Adwaita e sfondi.
 
 OPZIONI
-  --no-quickshell     Disabilita l'installazione di Quickshell.
   --dry-run           Mostra i moduli pianificati senza apportare modifiche al sistema.
   --doctor            Esegue la diagnostica dello stato desktop al termine dell'installazione.
   --set-wallpaper     Seleziona uno sfondo dalla cartella wallpapers/.
@@ -47,13 +46,11 @@ command_exists sudo || die "sudo non è installato."
 load_config "$ROOT_DIR"
 validate_config
 
-CONFIG_QUICKSHELL=true
 RUN_DOCTOR=false
 DRY_RUN=false
 
 while (($#)); do
   case "$1" in
-    --no-quickshell) CONFIG_QUICKSHELL=false ;;
     --dry-run) DRY_RUN=true ;;
     --doctor) RUN_DOCTOR=true ;;
     *) die "Opzione non valida: $1. Usa --help per l'elenco dei comandi." ;;
@@ -61,7 +58,7 @@ while (($#)); do
   shift
 done
 
-export ROOT_DIR CONFIG_QUICKSHELL
+export ROOT_DIR
 
 modules=(
   00-directories.sh
@@ -71,19 +68,13 @@ modules=(
   25-zsh-theme.sh
   26-kitty.sh
   75-sway-desktop.sh
-)
-
-if [[ "$CONFIG_QUICKSHELL" == true ]]; then
-  modules+=(76-quickshell.sh)
-fi
-
-modules+=(
+  76-quickshell.sh
   80-git.sh
   90-power-mode.sh
   05-agent-context.sh
 )
 
-log "Installazione Fedora Sway Desktop (Quickshell: $CONFIG_QUICKSHELL)"
+log "Installazione Fedora Sway Desktop"
 
 if [[ "$DRY_RUN" == true ]]; then
   printf '\nModalità --dry-run: moduli pianificati (%d):\n' "${#modules[@]}"

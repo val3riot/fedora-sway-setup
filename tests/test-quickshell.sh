@@ -9,6 +9,5 @@ for action in Lock Logout Suspend Reboot Shutdown; do
   WORKSTATION_QUICKSHELL_TEST=1 bash "$power_sh" "$action"
 done
 # No feature flag: module must return without requiring sudo or writing files.
-env CONFIG_QUICKSHELL=false ROOT_DIR="$ROOT_DIR" bash "$ROOT_DIR/modules/76-quickshell.sh"
-grep -Fq -- '--no-quickshell' <("$ROOT_DIR/install.sh" --help)
-printf '%s\n' 'OK   Quickshell statistics, migration, idempotence, opt-in and safe power actions'
+! grep -Fq -- '--no-quickshell' <("$ROOT_DIR/install.sh" --help)
+printf '%s\n' 'OK   Quickshell statistics, migration, idempotence and safe power actions'

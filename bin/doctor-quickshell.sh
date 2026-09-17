@@ -21,7 +21,7 @@ for file in shell.qml Theme.qml qmldir bar/Bar.qml bar/BarButton.qml bar/Workspa
   bar/SystemStats.qml services/SystemData.qml services/AudioService.qml services/BluetoothService.qml \
   services/stats.py services/network.py services/wifi.py services/desktop-settings.py services/occupancy.py services/power.sh \
   popups/BluetoothPopup.qml popups/BluetoothDeviceRow.qml popups/DeviceButton.qml popups/ActionButton.qml popups/BarPopup.qml popups/AudioPopup.qml popups/NetworkPopup.qml \
-  popups/CalendarPopup.qml popups/PowerMenu.qml; do
+  popups/CalendarPopup.qml popups/PowerMenu.qml popups/QuickSettings.qml desktop/DesktopTools.qml shortcuts/ShortcutsPopup.qml shortcuts/ShortcutsData.js; do
   [[ -r "$config/$file" ]] && ok config "$file" || fail config "$file"
 done
 if python3 "$ROOT_DIR/bin/configure-quickshell.py" --check >/dev/null 2>&1 &&
@@ -32,13 +32,9 @@ else
   fail 'Sway integration' 'conflitto, modifica personale o file managed mancante'
 fi
 if pgrep -u "$(id -u)" -x waybar >/dev/null; then
-  if pgrep -u "$(id -u)" -x quickshell >/dev/null; then
-    fail 'runtime conflict' 'Waybar e Quickshell attivi'
-  else
-    printf 'WARN Quickshell runtime: Waybar attiva (login precedente o fallback).\n'
-  fi
+  fail 'runtime conflict' 'Waybar attiva in sessione'
 fi
-for executable in python3 sway systemctl flock swaymsg swaylock waybar; do
+for executable in python3 sway systemctl flock swaymsg swaylock; do
   command -v "$executable" >/dev/null && ok dependency "$executable" || fail dependency "$executable"
 done
 /usr/bin/python3 -c 'import gi; gi.require_version("NM", "1.0"); from gi.repository import NM' &&
@@ -65,7 +61,7 @@ fi
 for executable in grim slurp wl-copy wl-paste brightnessctl notify-send; do
   command -v "$executable" >/dev/null && ok dependency "$executable" || fail dependency "$executable"
 done
-for helper in workstation-shell workstation-screenshot workstation-lock; do
+for helper in workstation-shell workstation-screenshot workstation-lock workstation-network; do
   if [[ -x "$HOME/.local/bin/$helper" ]] && cmp -s "$ROOT_DIR/bin/$helper" "$HOME/.local/bin/$helper"; then
     ok 'desktop helper' "$helper"
   else
@@ -80,7 +76,19 @@ else
   fail 'desktop keys' 'drop-in assente/modificato'
 fi
 "$HOME/.local/bin/workstation-lock" --check || fail swaylock 'configurazione non supportata'
-/usr/bin/python3 "$ROOT_DIR/bin/workstation-notifications.py" doctor || fail notifications "ownership o migrazione non conformi"
+if python3 -c '
+import json, subprocess, sys
+res = subprocess.check_output([sys.executable, "'"$config"'/services/notification-bus.py", "--once"], text=True).strip()
+data = json.loads(res)
+if not data.get("known"):
+    sys.exit(1)
+if data.get("executable") and data["executable"] != "/usr/bin/quickshell":
+    sys.exit(1)
+'; then
+  ok notifications 'Quickshell DBus owner verificato'
+else
+  fail notifications 'ownership notifiche non conforme'
+fi
 bash "$ROOT_DIR/bin/doctor-quickshell-hardware.sh" || fail 'optional hardware'
 if rg -n 'https?://' "$config"; then
   fail URLs 'URL runtime non consentiti'

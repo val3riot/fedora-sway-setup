@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# workstation-setup: managed network TUI utility
+set -Eeuo pipefail
+exec "$HOME/.local/bin/workstation-system-tool" network "$@"

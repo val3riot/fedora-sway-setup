@@ -10,7 +10,8 @@ grep -Fq 'https://github.com/pythops/bluetui/releases/download/v${BLUETUI_VERSIO
 
 # Pacchetti desktop installati da repository ufficiali Fedora
 grep -Fq 'install_available_packages sway' "$ROOT_DIR/modules/75-sway-desktop.sh"
-grep -Fq 'sway sway-config-fedora waybar fuzzel' "$ROOT_DIR/modules/75-sway-desktop.sh"
+grep -Fq 'sway sway-config-fedora swayidle swaylock' "$ROOT_DIR/modules/75-sway-desktop.sh"
+! grep -Eq 'waybar|fuzzel|mako' "$ROOT_DIR/modules/75-sway-desktop.sh"
 
 # I plugin Zsh disponibili in Fedora non devono essere clonati manualmente.
 grep -Fq 'zsh-syntax-highlighting zsh-autosuggestions' "$ROOT_DIR/modules/25-zsh-theme.sh"

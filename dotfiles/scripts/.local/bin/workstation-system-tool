@@ -32,6 +32,8 @@ def main():
         command = command[1:]
     if not command and args.kind == 'bluetooth':
         command = [str(Path.home() / '.local/bin/bluetui')]
+    if not command and args.kind == 'network':
+        command = [shutil.which('nmtui') or '/usr/bin/nmtui']
     if not command or not shutil.which(command[0]):
         parser.error('TUI assente: installare la release prevista dal setup.')
     if not os.environ.get('SWAYSOCK'):

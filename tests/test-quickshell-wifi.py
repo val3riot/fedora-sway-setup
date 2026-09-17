@@ -132,15 +132,13 @@ class Wifi(unittest.TestCase):
         self.assertIn('non più disponibile', self.service.message)
 
     def test_system_editor_no_credentials_and_async_reap(self):
-        with patch.object(network.shutil, 'which', return_value='/usr/bin/nm-connection-editor'), \
-             patch.object(network.Gio.Subprocess, 'new') as launch:
+        with patch.object(network.Gio.Subprocess, 'new') as launch:
             self.service.configure()
-            self.assertEqual(launch.call_args.args[0],
-                             ['/usr/bin/nm-connection-editor', '--create', '--type=802-11-wireless'])
+            self.assertTrue(any('workstation-network' in arg or 'workstation-system-tool' in arg for arg in launch.call_args.args[0]))
             launch.return_value.wait_check_async.assert_called_once()
-        with patch.object(network.shutil, 'which', return_value=None):
+        with patch.object(network.Gio.Subprocess, 'new', side_effect=network.GLib.Error('cannot start')):
             self.service.configure()
-            self.assertIn('tool NetworkManager', self.service.message)
+            self.assertIn('Impossibile avviare', self.service.message)
 
     def test_scan_and_toggle_failure(self):
         self.hardware()

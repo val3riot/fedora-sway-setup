@@ -15,7 +15,6 @@ required_packages=(
   kitty
   sway
   swaylock
-  waybar
   quickshell
   systemd-user
   scripts
@@ -35,8 +34,9 @@ test -f "$ROOT_DIR/dotfiles/shell/.config/starship.toml"
 test -f "$ROOT_DIR/dotfiles/kitty/.config/kitty/kitty.conf"
 test -f "$ROOT_DIR/dotfiles/sway/.config/sway/config"
 test -f "$ROOT_DIR/dotfiles/swaylock/.config/swaylock/config"
-test -f "$ROOT_DIR/dotfiles/waybar/.config/waybar/config"
-test -f "$ROOT_DIR/dotfiles/waybar/.config/waybar/style.css"
+test -f "$ROOT_DIR/dotfiles/quickshell/.config/quickshell/workstation/shell.qml"
+test -f "$ROOT_DIR/dotfiles/scripts/.local/bin/workstation-network"
+test -f "$ROOT_DIR/dotfiles/scripts/.local/bin/workstation-shell"
 test -f "$ROOT_DIR/dotfiles/systemd-user/.config/systemd/user/workstation-bar.service"
 test -f "$ROOT_DIR/dotfiles/desktop-theme/.config/gtk-3.0/settings.ini"
 

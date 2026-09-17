@@ -41,15 +41,13 @@ check_rpm_command git git-core
 check_rpm_command zsh zsh
 check_rpm_command kitty kitty
 check_rpm_command sway sway
-check_rpm_command waybar waybar
-check_rpm_command fuzzel fuzzel
 check_rpm_command swaylock swaylock
 check_rpm_command grim grim
 check_rpm_command slurp slurp
 check_rpm_command wl-copy wl-clipboard
 
 for fedora_package in git-core zsh zsh-syntax-highlighting zsh-autosuggestions kitty \
-  sway waybar fuzzel swaylock grim slurp wl-clipboard pipewire wireplumber NetworkManager bluez greetd; do
+  sway swaylock grim slurp wl-clipboard pipewire wireplumber NetworkManager NetworkManager-tui bluez greetd; do
   if rpm -q "$fedora_package" >/dev/null 2>&1; then
     check_fedora_package "$fedora_package"
   fi

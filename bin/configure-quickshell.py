@@ -74,8 +74,13 @@ def plan(home, source):
             # System snippets can have dynamic includes unrelated to the bar.
             if any(START.search(line) for line in file.read_text().splitlines()):
                 raise ValueError('Avvio barra in configurazione di sistema: ' + str(file))
-    lines = [('# workstation-setup: Waybar gestita da 90-bar.conf' if DIRECT.fullmatch(line) else line)
-             for line in text.splitlines()]
+    MAKO_DIRECT = re.compile(r'^\s*exec(?:_always)?\s+(?:--no-startup-id\s+)?mako\s*$')
+    lines = [
+        ('# workstation-setup: Waybar gestita da 90-bar.conf' if DIRECT.fullmatch(line)
+         else '# workstation-setup: Notifiche gestite da Quickshell' if MAKO_DIRECT.fullmatch(line)
+         else line)
+        for line in text.splitlines()
+    ]
     if not any(line.strip() in ('include ~/.config/sway/config.d/*',
                                  'include ~/.config/sway/config.d/*.conf',
                                  'include ~/.config/sway/config.d/90-bar.conf',
@@ -103,12 +108,8 @@ def plan(home, source):
             digest = hashlib.sha256(target.read_bytes()).hexdigest()
             if digest != previous.get(name) and target.read_bytes() != file.read_bytes():
                 raise ValueError('Modifiche QML personali da preservare: ' + str(target))
-    import importlib.util
-    spec = importlib.util.spec_from_file_location('notifications_config', Path(__file__).with_name('workstation-notifications.py'))
-    notifications = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(notifications)
-    content, notification_changes = notifications.plan(home, '\n'.join(lines) + '\n')
-    return config, content, drop, destination, files, notifications, notification_changes
+    content = '\n'.join(lines) + '\n'
+    return config, content, drop, destination, files
 
 
 def main():
@@ -123,7 +124,7 @@ def main():
     args = parser.parse_args()
     if os.environ.get('XDG_CONFIG_HOME', str(args.home / '.config')) != str(args.home / '.config'):
         raise ValueError('Il profilo Sway corrente usa ~/.config; XDG_CONFIG_HOME alternativo non supportato.')
-    config, content, drop, destination, files, notifications, notification_changes = plan(args.home, args.source)
+    config, content, drop, destination, files = plan(args.home, args.source)
     if args.check:
         return
     import hashlib
@@ -131,9 +132,6 @@ def main():
     backup = config.with_name('config.pre-quickshell.bak')
     if not backup.exists():
         shutil.copy2(config, backup)
-    notification_backup = config.with_name('config.pre-notifications.bak')
-    if not notification_backup.exists():
-        shutil.copy2(config, notification_backup)
     destination.mkdir(parents=True, exist_ok=True)
     hashes = {}
     for name, source in files.items():
@@ -147,12 +145,13 @@ def main():
     (destination / '.workstation-managed').write_text(json.dumps(hashes, sort_keys=True, indent=2) + '\n')
     drop.parent.mkdir(parents=True, exist_ok=True)
     drop.write_text(DROPIN)
-    notifications.apply(notification_changes)
     if not (config.is_symlink() and 'dotfiles' in str(config.resolve())):
         config.write_text(content)
     state = args.home / '.config/workstation-setup/bar'
     state.parent.mkdir(parents=True, exist_ok=True)
     state.write_text('quickshell\n')
+    notif_state = args.home / '.config/workstation-setup/notifications'
+    notif_state.write_text('quickshell\n')
 
 
 if __name__ == '__main__':

@@ -86,21 +86,21 @@ GNU Stow (bin/stow-dotfiles)
 - `quickshell`: `~/.config/quickshell/workstation/...`
 - `systemd-user`: `~/.config/systemd/user/workstation-bar.service`
 - `desktop-theme`: `~/.config/gtk-3.0/settings.ini`, `gtk-4.0/settings.ini`, configurazione font
-- `scripts`: script helper utente in `~/.local/bin/` (`sway-help`, `workstation-shell`, `workstation-screenshot`, ecc.)
+- `scripts`: script helper utente in `~/.local/bin/` (`workstation-network`, `workstation-shell`, `workstation-screenshot`, ecc.)
 
-> **Nota:** I file generati o alterati dinamicamente a runtime (`theme.conf`, `theme.css`, `fuzzel.ini`, `90-bar.conf`, `95-notifications.conf`) restano gestiti dal selettore del tema in `$HOME/.config/` senza sporcare il tracciamento Git.
+> **Nota:** La palette dei colori è centralizzata in `config/palette.env`, garantendo massima coerenza visiva tra Sway, Kitty, GTK e Quickshell.
 
 ---
 
 ## 4. Scorciatoie Principali (Sway)
 
-Per l'elenco interattivo e ricercabile completo, premere **`Super+G`** (o eseguire `sway-help` nel terminale).
+Per il pannello interattivo e ricercabile nativo delle scorciatoie, premere **`Super+G`** (gestito direttamente da Quickshell).
 
 | Scorciatoia | Azione |
 |---|---|
 | `Super + Invio` | Apre un nuovo terminale Kitty |
-| `Super + D` | Launcher applicazioni (Fuzzel) |
-| `Super + G` | Guida comandi e scorciatoie (`sway-help`) |
+| `Super + D` | Launcher applicazioni (Quickshell) |
+| `Super + G` | Guida scorciatoie (Quickshell Shortcuts panel) |
 | `Super + V` | Selettore clipboard volatile (solo RAM) |
 | `Super + Shift + V` | Imposta il layout di split verticale |
 | `Super + Shift + Q` | Chiude la finestra corrente |

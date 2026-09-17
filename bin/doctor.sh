@@ -59,7 +59,6 @@ printf '\nSway Compositor:\n'
 check Sway sway
 check Swaylock swaylock
 check Swayidle swayidle
-check 'Sway help' sway-help
 
 sway_config="$HOME/.config/sway/config"
 if [[ -r "$sway_config" ]]; then
@@ -68,7 +67,7 @@ else
   fail 'Sway config' 'file mancante'
 fi
 
-for dropin in 60-policykit-window.conf 61-desktop-app-windows.conf 62-system-utilities.conf 90-bar.conf 92-desktop-tools.conf 93-appearance.conf 95-notifications.conf 99-theme.conf; do
+for dropin in 60-policykit-window.conf 61-desktop-app-windows.conf 62-system-utilities.conf 90-bar.conf 92-desktop-tools.conf 93-appearance.conf 99-theme.conf; do
   dropin_path="$HOME/.config/sway/config.d/$dropin"
   if [[ -r "$dropin_path" ]]; then
     ok "Sway drop-in" "$dropin"
@@ -116,7 +115,7 @@ fi
 printf '\nAudio & Networking:\n'
 check WirePlumber wireplumber
 check Pavucontrol pavucontrol
-check 'Network editor' nm-connection-editor
+check 'Network helper' workstation-network
 
 if systemctl --user is-active --quiet wireplumber 2>/dev/null; then
   ok 'WirePlumber service' 'attivo'
@@ -137,7 +136,7 @@ check 'Polkit agent' /usr/libexec/lxqt-policykit-agent
 
 # 8. Helper e Utility Desktop
 printf '\nDesktop Helpers:\n'
-for helper in workstation-screenshot workstation-shell workstation-system-tool workstation-theme workstation-bar.sh; do
+for helper in workstation-screenshot workstation-shell workstation-system-tool workstation-theme workstation-bar.sh workstation-network; do
   check "$helper" "$helper"
 done
 

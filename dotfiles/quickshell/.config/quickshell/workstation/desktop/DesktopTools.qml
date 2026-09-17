@@ -4,6 +4,7 @@ import Quickshell.Io
 import "../osd"
 import "../launcher"
 import "../clipboard"
+import "../shortcuts"
 Scope {
     id: root
     required property var audioService
@@ -19,10 +20,14 @@ Scope {
         active: root.opened === "clipboard"
         sourceComponent: ClipboardPopup { service: clipboard; visible: true; onCloseRequested: root.opened = "" }
     }
+    Loader {
+        active: root.opened === "shortcuts"
+        sourceComponent: ShortcutsPopup { visible: true; onCloseRequested: root.opened = "" }
+    }
     IpcHandler {
         target: "desktop"
         function action(name: string): void {
-            if (name === "launcher" || name === "clipboard") root.opened = root.opened === name ? "" : name;
+            if (name === "launcher" || name === "clipboard" || name === "shortcuts") root.opened = root.opened === name ? "" : name;
             else if (name === "close") root.opened = "";
             else osd.action(name);
         }

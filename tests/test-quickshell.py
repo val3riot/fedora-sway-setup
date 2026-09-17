@@ -99,7 +99,7 @@ class Migration(unittest.TestCase):
         self.assertNotIn('\nexec mako\n', text)
         self.assertIn('workstation-lock', text)
         self.assertEqual(self.config.with_name('config.pre-quickshell.bak').read_text(), self.original)
-        self.assertEqual(len(list(self.home.rglob('*.bak'))), 2)
+        self.assertEqual(len(list(self.home.rglob('*.bak'))), 1)
 
     def test_personal_config_unchanged(self):
         self.config.write_text('exec waybar\n')
@@ -147,7 +147,7 @@ class Migration(unittest.TestCase):
         self.assertEqual(self.config.read_text().count('include ~/.config/sway/config.d/90-bar.conf'), 1)
 
 
-class CliAndRollback(unittest.TestCase):
+class CliAndBar(unittest.TestCase):
     def test_cli_module_selection(self):
         if os.geteuid() == 0:
             self.skipTest('CLI intentionally rejects root')
@@ -161,35 +161,30 @@ class CliAndRollback(unittest.TestCase):
             for extra in ['laptop-power-mode', 'stow-dotfiles']:
                 (root / 'bin' / extra).write_text('#!/bin/bash\n')
             for name in [p.name for p in (ROOT / 'modules').glob('*.sh')]:
-                (root / 'modules' / name).write_text('echo "' + name + ' $CONFIG_QUICKSHELL" >> "$CLI_RECORD"\n')
+                (root / 'modules' / name).write_text('echo "' + name + '" >> "$CLI_RECORD"\n')
             def run(flags):
                 record = root / 'record'
                 record.write_text('')
                 result = subprocess.run(['bash', str(root / 'install.sh'), *flags],
                     env=dict(os.environ, HOME=str(root), CLI_RECORD=str(record), XDG_STATE_HOME=str(root / 'state')),
                     capture_output=True, text=True)
-                self.assertEqual(result.returncode, 0, result.stderr)
-                return record.read_text()
-            default_run = run([])
-            self.assertIn('76-quickshell.sh true', default_run)
+                return result.returncode, record.read_text(), result.stderr
+            code, default_run, _ = run([])
+            self.assertEqual(code, 0)
+            self.assertIn('76-quickshell.sh', default_run)
             self.assertIn('75-sway-desktop.sh', default_run)
             self.assertIn('20-shell.sh', default_run)
-            no_qs = run(['--no-quickshell'])
-            self.assertNotIn('76-quickshell.sh', no_qs)
-            self.assertIn('75-sway-desktop.sh', no_qs)
+            code, _, stderr = run(['--no-quickshell'])
+            self.assertNotEqual(code, 0)
+            self.assertIn('Opzione non valida', stderr)
 
-    def test_fallback_and_rollback(self):
+    def test_bar_launcher(self):
         import socket
         with tempfile.TemporaryDirectory() as tmp:
             home = Path(tmp)
             bindir = home / 'bin'
             bindir.mkdir()
-            selection = home / '.config/workstation-setup/bar'
-            selection.parent.mkdir(parents=True)
-            selection.write_text('quickshell\n')
-            for name, body in {'pgrep': 'exit 1', 'pkill': 'exit 1',
-                               'quickshell': 'echo "qs $*" >> "$RECORD"; exit 1',
-                               'waybar': 'echo waybar >> "$RECORD"',
+            for name, body in {'quickshell': 'echo "qs $*" >> "$RECORD"',
                                'systemctl': 'echo "systemctl $*" >> "$RECORD"'}.items():
                 target = bindir / name
                 target.write_text('#!/bin/bash\n' + body + '\n')
@@ -199,13 +194,15 @@ class CliAndRollback(unittest.TestCase):
                 sock.bind(str(path))
                 env = dict(os.environ, HOME=str(home), SWAYSOCK=str(path), XDG_RUNTIME_DIR=str(home),
                            RECORD=str(home / 'record'), PATH=str(bindir) + ':' + os.environ['PATH'])
-                subprocess.run(['bash', str(ROOT / 'bin/workstation-bar.sh'), 'run'], env=env, check=True, capture_output=True)
+                bar_script = ROOT / 'dotfiles/scripts/.local/bin/workstation-bar.sh'
+                subprocess.run(['bash', str(bar_script), 'run'], env=env, check=True)
                 lines = (home / 'record').read_text().splitlines()
-                self.assertEqual(lines[-1], 'waybar')
-                self.assertEqual(lines.count('waybar'), 1)
-                subprocess.run(['bash', str(ROOT / 'bin/workstation-bar.sh'), 'waybar'], env=env, check=True)
-                self.assertEqual(selection.read_text(), 'waybar\n')
+                self.assertTrue(any('qs' in line and '--no-duplicate' in line for line in lines))
+                subprocess.run(['bash', str(bar_script), 'restart'], env=env, check=True)
                 self.assertIn('systemctl --user restart workstation-bar.service', (home / 'record').read_text())
+                res = subprocess.run(['bash', str(bar_script), 'waybar'], env=env, capture_output=True)
+                self.assertEqual(res.returncode, 2)
+
 
 
 if __name__ == '__main__':

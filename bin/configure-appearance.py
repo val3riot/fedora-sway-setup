@@ -8,6 +8,22 @@ import shutil
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_palette():
+    palette_file = ROOT / 'config/palette.env'
+    palette = {}
+    if palette_file.is_file():
+        for line in palette_file.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            k, v = line.split('=', 1)
+            palette[k.strip()] = v.strip().strip('"\'')
+    return palette
+
+
+PALETTE = load_palette()
 INTERFACE = {
     'color-scheme': 'prefer-dark', 'gtk-theme': 'Adwaita',  # Built-in theme + dark variant, not a missing Adwaita-dark directory.
     'icon-theme': 'Adwaita', 'cursor-theme': 'Adwaita', 'cursor-size': 24,

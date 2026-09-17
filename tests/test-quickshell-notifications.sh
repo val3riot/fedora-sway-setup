@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-PYTHONDONTWRITEBYTECODE=1 python3 "$ROOT_DIR/tests/test-notification-migration.py"
 command -v quickshell >/dev/null || { echo 'SKIP notification QML mocks: Quickshell assente'; exit 0; }
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT

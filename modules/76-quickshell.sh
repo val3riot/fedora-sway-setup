@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 source "$ROOT_DIR/lib/common.sh"
 load_config "$ROOT_DIR"
-[[ "${CONFIG_QUICKSHELL:-false}" == true ]] || exit 0
+[[ "${CONFIG_QUICKSHELL:-true}" == true ]] || exit 0
 
 log 'Quickshell: verifica migrazione Sway prima di modificare file o pacchetti'
 python3 "$ROOT_DIR/bin/configure-quickshell.py" --check
@@ -38,4 +38,4 @@ python3 "$ROOT_DIR/bin/configure-quickshell.py"
 python3 "$ROOT_DIR/bin/configure-appearance.py"
 install -D -m 0644 "$ROOT_DIR/templates/themes/dark/kitty.conf" "$HOME/.config/kitty/theme.conf"
 systemctl --user daemon-reload
-log 'Quickshell configurato. Effetto al prossimo login Sway; rollback: workstation-bar.sh waybar.'
+log 'Quickshell configurato. Effetto al prossimo login Sway.'

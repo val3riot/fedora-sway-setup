@@ -6,7 +6,6 @@ from pathlib import Path
 import subprocess
 
 FALLBACK = {
-    'launcher': [str(Path.home() / '.local/bin/workstation-app-menu')],
     'volume-up': ['wpctl', 'set-volume', '-l', '1', '@DEFAULT_AUDIO_SINK@', '5%+'],
     'volume-down': ['wpctl', 'set-volume', '@DEFAULT_AUDIO_SINK@', '5%-'],
     'mute': ['wpctl', 'set-mute', '@DEFAULT_AUDIO_SINK@', 'toggle'],
@@ -15,10 +14,12 @@ FALLBACK = {
     'brightness-down': ['brightnessctl', '-c', 'backlight', 'set', '5%-'],
 }
 
+ACTIONS = [*FALLBACK, 'launcher', 'clipboard', 'shortcuts', 'close', 'mic-up', 'mic-down']
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=[*FALLBACK, 'clipboard', 'close', 'mic-up', 'mic-down'])
+    parser.add_argument('action', choices=ACTIONS)
     action = parser.parse_args().action
     try:
         result = subprocess.run(['quickshell', 'ipc', '--path', str(Path.home() / '.config/quickshell/workstation'),

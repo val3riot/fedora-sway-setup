@@ -43,6 +43,14 @@ class SystemUtilities(unittest.TestCase):
         self.assertIn('service.manage()', row)
         self.assertIn('workstation-system-tool', service)
 
+    def test_network_utility_command(self):
+        argv = utility.kitty_command('network', ['nmtui'], dict(width=1280, height=720))
+        self.assertEqual(argv[1:3], ['--app-id', 'workstation-network'])
+        self.assertEqual(argv[-1], 'nmtui')
+        net_script = (ROOT / 'dotfiles/scripts/.local/bin/workstation-network').read_text()
+        self.assertIn('workstation-system-tool', net_script)
+        self.assertIn('network', net_script)
+
 
 if __name__ == '__main__':
     unittest.main()
