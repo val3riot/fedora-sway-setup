@@ -18,16 +18,11 @@ DEFAULT
   Bluetooth, NetworkManager, portali XDG, tema Adwaita e sfondi.
 
 OPZIONI
-  --no-quickshell     Configura Waybar come barra principale invece di Quickshell.
+  --no-quickshell     Disabilita l'installazione di Quickshell.
   --dry-run           Mostra i moduli pianificati senza apportare modifiche al sistema.
   --doctor            Esegue la diagnostica dello stato desktop al termine dell'installazione.
   --set-wallpaper     Seleziona uno sfondo dalla cartella wallpapers/.
   --help, -h          Mostra questa guida.
-
-STRUMENTI OPZIONALI
-  Strumenti di sviluppo (Java, Node, Python, C++), container (Docker), macchine virtuali,
-  agenti AI e client VPN sono gestiti separatamente nel repository:
-  fedora-workstation-tools (~/Progetti/personali/fedora-workstation-tools).
 
 VERIFICA
   ./bin/doctor.sh     Diagnostica rapida desktop (< 2 secondi).

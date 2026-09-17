@@ -2,8 +2,6 @@
 
 Questo repository (`fedora-sway-setup`) ha un unico scopo ben delimitato: **fornire una workstation Fedora completa basata su Sway, Quickshell e GNU Stow**.
 
-Non gestisce container, macchine virtuali, SDK di sviluppo (Java, Node, Python), agenti AI o client VPN: questi componenti risiedono nel repository gemello **`fedora-workstation-tools`** (`~/Progetti/personali/fedora-workstation-tools`).
-
 ---
 
 ## 1. Modello Architetturale
@@ -33,7 +31,7 @@ Non gestisce container, macchine virtuali, SDK di sviluppo (Java, Node, Python),
 │ • Quick Settings              │               │ • Zsh + Oh My Zsh             │
 │ • Server Notifiche nativo     │               │ • Starship Prompt             │
 │ • Audio, Wi-Fi, Bluetooth     │               └───────────────────────────────┘
-│ • Fallback automatico Waybar  │
+│ • Integrazione Sway IPC       │
 └───────────────────────────────┘
                                     │
                                     ▼
@@ -46,15 +44,15 @@ Non gestisce container, macchine virtuali, SDK di sviluppo (Java, Node, Python),
 
 ---
 
-## 2. Divisione dei Due Repository
+## 2. Componenti del Sistema
 
-| Ambito | Repository: `fedora-sway-setup` | Repository: `fedora-workstation-tools` |
-|---|---|---|
-| **Missione** | "Rendo Fedora il mio desktop Sway completo" | "Installo strumenti opzionali sopra la workstation" |
-| **Piattaforma** | Fedora 44 x86_64, Wayland, Sway, Greetd | Agnostico rispetto al DE (gira su Sway, GNOME o headless) |
-| **Componenti** | Sway, Quickshell, Waybar, Fuzzel, Swaylock, Kitty, Zsh, Starship, GNU Stow, BlueTUI, PipeWire, BlueZ, NetworkManager, portali XDG, tema Adwaita | Docker (rootless & desktop), KVM/QEMU, virt-manager, Vagrant, Tailscale, VPN, SDKMAN (Java/Maven/Gradle), NVM/Node, Miniconda, VS Code, DBeaver, Bruno, JetBrains, Codex, Claude Code, Copilot CLI, Flatpak (Discord, Obsidian), Cliamp |
-| **Esecuzione** | `./install.sh` (installa il desktop completo) | `./install.sh` (stampa help; richiede flag `--dev`, `--infra`, ecc.) |
-| **Doctor** | Rapido (< 2s), deterministico, offline, verifica solo lo stato del desktop | Ispeziona o valida i singoli strumenti configurati |
+| Ambito | Descrizione |
+|---|---|
+| **Missione** | Setup completo e riproducibile del desktop Sway per Fedora 44 |
+| **Piattaforma** | Fedora 44 x86_64, Wayland, Sway, Greetd |
+| **Componenti** | Sway, Quickshell, Fuzzel, Swaylock, Kitty, Zsh, Starship, GNU Stow, BlueTUI, PipeWire, BlueZ, NetworkManager, portali XDG, tema Adwaita |
+| **Esecuzione** | `./install.sh` (installa e configura l'ambiente desktop completo) |
+| **Doctor** | Rapido (< 2s), deterministico, offline, verifica lo stato del desktop |
 
 ---
 
@@ -68,7 +66,6 @@ Tutti i file di configurazione stabili risiedono in `dotfiles/<pacchetto>/` e ve
 - `kitty`: `~/.config/kitty/kitty.conf`
 - `sway`: `~/.config/sway/config`, `~/.config/sway/config.d/`, shortcut, autostart
 - `swaylock`: `~/.config/swaylock/config`
-- `waybar`: `~/.config/waybar/config`, `~/.config/waybar/style.css` (fallback di Quickshell)
 - `quickshell`: `~/.config/quickshell/workstation/...` (QML shell, bar, quick settings, popups)
 - `systemd-user`: `~/.config/systemd/user/workstation-bar.service`
 - `desktop-theme`: `~/.config/gtk-3.0/settings.ini`, `gtk-4.0/settings.ini`, fontconfig
@@ -89,14 +86,14 @@ I file modificati dinamicamente dal tema (`theme.conf`, `theme.css`, `fuzzel.ini
 - `swaylock` per blocco schermo sicuro con verifica preventiva senza freeze (`workstation-lock --check`).
 - `sway-help` (`Super+G`) come guida comandi interattiva e ricercabile.
 
-### Desktop Shell (Quickshell con Fallback Waybar)
+### Desktop Shell (Quickshell)
 - Barra superiore minimale e reattiva scritta in Qt/QML.
 - Server notifiche D-Bus integrato conforme alla specifica Freedesktop.
 - Quick Settings globale a comparsa sul monitor attivo.
 - Selettore Wi-Fi nativo basato su `NetworkManager-libnm` (nessun subshell o parsing di `nmcli`).
 - Selettore Bluetooth nativo con integrazione TUI ufficiale BlueTUI in terminale floating per pairing e autenticazione PIN.
 - Audio nativo tramite oggetti PipeWire.
-- Servizio di supervisione `workstation-bar.service`: se Quickshell incontra anomalie o incompatibilità ABI, esegue il fallback automatico su Waybar.
+- Servizio di supervisione `workstation-bar.service`: gestisce il ciclo di vita della barra Quickshell e dei servizi di notifica.
 
 ### Diagnostica Rapida (Doctor)
 - `bin/doctor.sh` esegue solo verifiche desktop locali:

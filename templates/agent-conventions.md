@@ -13,8 +13,8 @@
    non disabilitare TLS o controlli GPG.
 5. Il presente repository (`fedora-sway-setup`) ha come unico scope il sistema
    operativo base e l'ambiente desktop Wayland/Sway con Quickshell.
-6. Strumenti di sviluppo opzionali (Java, Node, Python, Docker, VM, Tailscale,
-   agenti CLI, app Flatpak) risiedono separatamente in `~/Progetti/personali/fedora-workstation-tools`.
+6. Mantenere il setup focalizzato sull'ambiente desktop ed evitare dipendenze
+   esterne non necessarie.
 7. Non eseguire l'intero setup come root. Usare `sudo` soltanto per pacchetti,
    servizi systemd e configurazioni realmente di sistema.
 8. Conservare progetti e checkout nella gerarchia Progetti. Non archiviare
@@ -27,18 +27,16 @@
     agenti nelle relative fonti del setup e rigenerare i file in `~/.agent` con
     `ROOT_DIR="$PWD" bash modules/05-agent-context.sh`.
 
-## Architettura a due repository
+## Scope del repository
 
 - **fedora-sway-setup** (`~/Progetti/personali/fedora-sway-setup`):
   Scope desktop: Sway, Quickshell, Greetd, Kitty, Zsh, dotfile GNU Stow, audio PipeWire,
   Bluetooth con BlueTUI, NetworkManager, portali XDG, tema Adwaita e sfondi.
-- **fedora-workstation-tools** (`~/Progetti/personali/fedora-workstation-tools`):
-  Scope strumenti: Moduli `--dev`, `--docker`, `--dbmanager`, `--apiclient`, `--agents`, `--vpn`, `--vm`.
 
 ## Note per componenti desktop specifici
 
 - Sway: `sway-help` / Super+G mostra la guida condivisa. Quickshell è la barra e
-  control center di default (con fallback Waybar). Non riattivare Mako quando
+  control center di default. Non riattivare Mako quando
   Quickshell possiede le notifiche.
 - Pairing Bluetooth: BlueTUI ufficiale in `workstation-system-tool bluetooth`;
   nuovi pairing nella TUI, connect/disconnect nel popup. PipeWire gestisce l'audio.

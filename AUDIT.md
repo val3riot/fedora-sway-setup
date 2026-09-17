@@ -1,7 +1,6 @@
 # Provenienza del software — Fedora Sway Setup
 
 Questo repository gestisce esclusivamente l'ambiente desktop Wayland basato su Sway per Fedora 44.
-Tutti gli strumenti di sviluppo (Java, Node, Python), infrastruttura (Docker, KVM/libvirt, Tailscale) e agenti AI (Codex, Claude, Copilot) sono gestiti nel repository separato **`fedora-workstation-tools`** (`~/Progetti/personali/fedora-workstation-tools/AUDIT.md`).
 
 ---
 
@@ -14,7 +13,7 @@ I seguenti componenti sono installati tramite DNF dai repository ufficiali Fedor
 | **Sistema e shell** | `git-core`, `zsh`, `zsh-syntax-highlighting`, `zsh-autosuggestions`, `openssh-clients` |
 | **Terminale** | `kitty` |
 | **Window Manager & Compositor** | `sway`, `sway-config-fedora`, `swaylock`, `swayidle` |
-| **Barre e selettori** | `quickshell`, `waybar`, `fuzzel` |
+| **Barre e selettori** | `quickshell`, `fuzzel` |
 | **Cattura e clipboard** | `grim`, `slurp`, `wl-clipboard` |
 | **Audio e periferiche** | `pipewire`, `pipewire-pulseaudio`, `wireplumber`, `bluez`, `NetworkManager` |
 | **Display Manager** | `greetd` |
@@ -43,7 +42,7 @@ Nessun download viene eseguito senza validazione SHA-256 preventiva. Non sono am
 - **Distributore**: Fedora Project (nessun repository COPR di terze parti come `errornointernet/quickshell` viene abilitato).
 - **Integrità binario**: validata con `rpm -V quickshell`.
 - **Compatibilità ABI**: il modulo di setup e il doctor verificano il loader dinamico con `LD_BIND_NOW=1 quickshell --version`.
-- **Supervisione**: gestito da `systemd --user` (`workstation-bar.service`). In caso di anomalia o arresto anomalo di Quickshell, il servizio esegue automaticamente il fallback sulla barra standard **Waybar**.
+- **Supervisione**: gestito da `systemd --user` (`workstation-bar.service`).
 
 ---
 
@@ -51,7 +50,7 @@ Nessun download viene eseguito senza validazione SHA-256 preventiva. Non sono am
 
 - **COPR**: Nessun repository COPR è abilitato o richiesto.
 - **Repository Vendor esterni**: Nessun repository RPM di terze parti (Microsoft, Docker, ecc.) è configurato in questo repository.
-- **Flatpak**: Nessuna applicazione Flatpak è installata dallo script di setup desktop (applicazioni utente gestite separatamente da `fedora-workstation-tools`).
+- **Flatpak**: Nessuna applicazione Flatpak è installata dallo script di setup desktop.
 
 ---
 

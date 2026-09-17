@@ -2,9 +2,7 @@
 
 Bootstrap idempotente e focalizzato per configurare un ambiente desktop Wayland moderno e reattivo su **Fedora 44** con **Sway**, **Quickshell** e gestione dotfile basata su **GNU Stow**.
 
-> **Scope delimitato:** Questo repository gestisce esclusivamente il sistema operativo base e l'ambiente desktop.
-> Strumenti di sviluppo (Java, Node, Python, Docker, VM), agenti AI e applicazioni personali sono gestiti nel repository modulare separato:
-> [**fedora-workstation-tools**](../fedora-workstation-tools/README.md) (`~/Progetti/personali/fedora-workstation-tools`).
+> **Scope delimitato:** Questo repository gestisce esclusivamente il sistema operativo base e l'ambiente desktop Sway con Quickshell.
 
 ---
 
@@ -18,8 +16,7 @@ Bootstrap idempotente e focalizzato per configurare un ambiente desktop Wayland 
 
 - **Window Manager**: [Sway](https://swaywm.org/) con configurazione tiling logica, bordi puliti e supporto multi-monitor.
 - **Display Manager**: [Greetd](https://man.sr.ht/~kennylevinsen/greetd/) per il login grafico Wayland, con sfondo sincronizzato con la sessione utente.
-- **Desktop Shell**: [Quickshell](https://quickshell.org/) come barra superiore reattiva, server di notifiche nativo Freedesktop, Quick Settings globale, selettori rapidi Wi-Fi (via `libnm`) e Bluetooth (con integrazione TUI ufficiale BlueTUI in Kitty floating).
-- **Fallback Automatico**: Servizio di supervisione `workstation-bar.service` con ripiegamento trasparente su [Waybar](https://github.com/Alexays/Waybar) e [Mako](https://github.com/emersion/mako) in caso di anomalia di Quickshell.
+- **Desktop Shell**: [Quickshell](https://quickshell.org/) come barra superiore reattiva, server di notifiche nativo Freedesktop, Quick Settings globale, selettori rapidi Wi-Fi (via `libnm`) e Bluetooth (con integrazione TUI ufficiale BlueTUI in Kitty floating), con supervisione tramite servizio utente `workstation-bar.service`.
 - **Terminale & Shell**: [Kitty](https://sw.kovidgoyal.net/kitty/) con rendering GPU, Zsh con plugin ufficiali Fedora, tema personalizzato e prompt reattivo [Starship](https://starship.rs/).
 - **Dotfile tramite GNU Stow**: I file in `$HOME` (`~/.config/...`, `~/.zshrc`) sono symlink diretti ai file versionati in `dotfiles/`. Le modifiche locali aggiornano istantaneamente il repository Git.
 - **Tema & Aspetto**: [Adwaita Dark](https://gnome.pages.gitlab.gnome.org/libadwaita/) coerente tra applicazioni GTK (portal, 3.0, 4.0), Qt (portal) e Sway, icone/cursori Adwaita a 24px, font *Cascadia Code* e *Adwaita Sans*.
@@ -37,9 +34,6 @@ Eseguire lo script come utente normale; `sudo` viene richiesto una sola volta pe
 
 # Mostra i moduli pianificati senza apportare modifiche
 ./install.sh --dry-run
-
-# Configura Waybar come barra principale invece di Quickshell
-./install.sh --no-quickshell
 
 # Esegue la diagnostica al termine dell'installazione
 ./install.sh --doctor
@@ -89,7 +83,6 @@ GNU Stow (bin/stow-dotfiles)
 - `kitty`: `~/.config/kitty/kitty.conf`
 - `sway`: `~/.config/sway/config`, `~/.config/sway/config.d/`, autostart e regole finestre
 - `swaylock`: `~/.config/swaylock/config`
-- `waybar`: `~/.config/waybar/config`, `~/.config/waybar/style.css`
 - `quickshell`: `~/.config/quickshell/workstation/...`
 - `systemd-user`: `~/.config/systemd/user/workstation-bar.service`
 - `desktop-theme`: `~/.config/gtk-3.0/settings.ini`, `gtk-4.0/settings.ini`, configurazione font
@@ -119,24 +112,7 @@ Per l'elenco interattivo e ricercabile completo, premere **`Super+G`** (o esegui
 
 ---
 
-## 5. Strumenti di Sviluppo e Strumenti Opzionali
-
-Se sulla workstation servono container Docker, macchine virtuali libvirt/KVM, toolchain di sviluppo o agenti AI come Codex, fare riferimento a **`fedora-workstation-tools`**:
-
-```bash
-cd ~/Progetti/personali/fedora-workstation-tools
-./install.sh --help
-
-# Esempi:
-./install.sh --dev              # VS Code, Vim, SDKMAN, NVM, Miniconda, toolchain C/C++
-./install.sh --docker           # Docker CE rootless
-./install.sh --vpn tailscale    # Tailscale mesh VPN
-./install.sh --codex            # OpenAI Codex CLI
-```
-
----
-
-## 6. Verifica e Test del Repository
+## 5. Verifica e Test del Repository
 
 Il repository include una suite di verifica completa, veloce e non invasiva:
 
