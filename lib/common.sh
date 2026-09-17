@@ -90,9 +90,10 @@ install_available_packages() {
 
   if ((${#pending[@]})); then
     log "Installazione/verifica di ${#pending[@]} pacchetti con DNF"
-    # Una singola transazione sostituisce un repoquery silenzioso per ogni
-    # pacchetto. Lo stdin chiuso impedisce a DNF/plugin di attendere input.
-    sudo -n dnf install -y --skip-unavailable "${pending[@]}" </dev/null
+    if ! sudo -n dnf install -y --skip-unavailable "${pending[@]}" </dev/null; then
+      warn "Tentativo DNF fallito o interrotto; nuovo tentativo in corso..."
+      sudo -n dnf install -y --skip-unavailable "${pending[@]}" </dev/null || true
+    fi
     for package in "${pending[@]}"; do
       rpm -q "$package" >/dev/null 2>&1 || missing+=("$package")
     done

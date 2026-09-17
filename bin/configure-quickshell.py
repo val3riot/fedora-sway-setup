@@ -33,7 +33,8 @@ def plan(home, source):
         raise ValueError('Configurazione Sway personale: migrazione automatica rifiutata.')
     dropdir = config.parent / 'config.d'
     drop = dropdir / '90-bar.conf'
-    if drop.is_symlink() or (drop.exists() and drop.read_text().strip() and drop.read_text() != DROPIN):
+    if (drop.is_symlink() and 'dotfiles' not in str(drop.resolve())) or \
+       (drop.exists() and drop.read_text().strip() and drop.read_text() != DROPIN):
         raise ValueError('90-bar.conf personale: migrazione rifiutata, nessun file modificato.')
     # Follow only known includes. An unknown include can hide another bar; fail
     # closed instead of commenting out arbitrary personal startup commands.
@@ -143,8 +144,9 @@ def main():
         shutil.copyfile(source, target)
         hashes[name] = hashlib.sha256(source.read_bytes()).hexdigest()
     (destination / '.workstation-managed').write_text(json.dumps(hashes, sort_keys=True, indent=2) + '\n')
-    drop.parent.mkdir(parents=True, exist_ok=True)
-    drop.write_text(DROPIN)
+    if not (drop.is_symlink() and 'dotfiles' in str(drop.resolve())):
+        drop.parent.mkdir(parents=True, exist_ok=True)
+        drop.write_text(DROPIN)
     if not (config.is_symlink() and 'dotfiles' in str(config.resolve())):
         config.write_text(content)
     state = args.home / '.config/workstation-setup/bar'

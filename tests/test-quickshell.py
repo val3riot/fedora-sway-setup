@@ -140,6 +140,15 @@ class Migration(unittest.TestCase):
         self.configure(False)
         self.assertEqual(before, self.snapshot())
 
+    def test_managed_dotfiles_dropin_allowed(self):
+        directory = self.config.parent / 'config.d'
+        directory.mkdir()
+        dotfiles_target = self.home / 'dotfiles/sway/.config/sway/config.d/90-bar.conf'
+        dotfiles_target.parent.mkdir(parents=True)
+        dotfiles_target.write_text('# workstation-setup: managed quickshell bar\nexec_always --no-startup-id systemctl --user start workstation-bar.service\n')
+        (directory / '90-bar.conf').symlink_to(dotfiles_target)
+        self.configure(True)
+
     def test_no_include_is_added_once(self):
         self.config.write_text(self.original.replace('include ~/.config/sway/config.d/*\n', ''))
         self.configure()
