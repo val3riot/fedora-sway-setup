@@ -8,6 +8,12 @@ Bootstrap idempotente e focalizzato per configurare un ambiente desktop Wayland 
 
 ---
 
+## Preview
+
+![Fedora Sway desktop](docs/assets/fedora-sway-desktop.png)
+
+---
+
 ## 1. Caratteristiche Principali
 
 - **Window Manager**: [Sway](https://swaywm.org/) con configurazione tiling logica, bordi puliti e supporto multi-monitor.

@@ -41,7 +41,7 @@ test -f "$ROOT_DIR/dotfiles/systemd-user/.config/systemd/user/workstation-bar.se
 test -f "$ROOT_DIR/dotfiles/desktop-theme/.config/gtk-3.0/settings.ini"
 
 # Check portability: no hardcoded /home/ username paths inside versioned dotfiles
-! grep -rn '/home/[a-zA-Z0-9_-]\+' "$ROOT_DIR/dotfiles" 2>/dev/null || {
+! grep -rn --exclude-dir='__pycache__' --exclude='*.pyc' '/home/[a-zA-Z0-9_-]\+' "$ROOT_DIR/dotfiles" 2>/dev/null || {
   printf 'FAIL percorsi utente hardcoded trovati in dotfiles/\n' >&2
   exit 1
 }
