@@ -16,9 +16,22 @@ loader.exec_module(wallpaper)
 
 
 class WallpaperTests(unittest.TestCase):
-    def setUp(self):
-        self.valid_image = ROOT / 'wallpapers/mita.jpg'
-        self.assertTrue(self.valid_image.is_file(), "mita.jpg missing in wallpapers/")
+    @classmethod
+    def setUpClass(cls):
+        cls._tmp_dir = tempfile.TemporaryDirectory()
+        existing = next((p for p in (ROOT / 'wallpapers').glob('*') if p.suffix.lower() in ('.jpg', '.jpeg', '.png') and p.is_file()), None)
+        if existing:
+            cls.valid_image = existing
+        else:
+            cls.valid_image = Path(cls._tmp_dir.name) / 'fixture.png'
+            from gi.repository import GdkPixbuf
+            pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, False, 8, 64, 64)
+            pixbuf.fill(0x336699ff)
+            pixbuf.savev(str(cls.valid_image), 'png', [], [])
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._tmp_dir.cleanup()
 
     def test_validate_valid_image(self):
         pixbuf = wallpaper.validate_image(self.valid_image)
